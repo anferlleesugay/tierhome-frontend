@@ -325,7 +325,7 @@ export default function LandlordListings() {
   const [myRequests,        setMyRequests]        = useState([]);
 
   const [formData, setFormData] = useState({
-    title: "", description: "", price: "",
+    title: "", description: "", terms_and_conditions: "", price: "",
     address: "", barangay: "", property_type: "House",
     latitude: "", longitude: "", amenities: [],
     total_slots: "",
@@ -460,7 +460,7 @@ export default function LandlordListings() {
 
   const resetForm = () => {
     setFormData({
-      title: "", description: "", price: "",
+      title: "", description: "", terms_and_conditions: "", price: "",
       address: "", barangay: "", property_type: "House",
       latitude: "", longitude: "", amenities: [],
       total_slots: "",
@@ -486,15 +486,16 @@ export default function LandlordListings() {
 
     try {
       const fd = new FormData();
-      fd.append("title",         formData.title);
-      fd.append("description",   formData.description);
-      fd.append("price",         formData.price);
-      fd.append("address",       formData.address);
-      fd.append("barangay",      formData.barangay);
-      fd.append("property_type", formData.property_type);
-      fd.append("latitude",      formData.latitude);
-      fd.append("longitude",     formData.longitude);
-      fd.append("amenities",     JSON.stringify(formData.amenities));
+      fd.append("title",                 formData.title);
+      fd.append("description",           formData.description);
+      fd.append("terms_and_conditions",  formData.terms_and_conditions);
+      fd.append("price",                 formData.price);
+      fd.append("address",               formData.address);
+      fd.append("barangay",              formData.barangay);
+      fd.append("property_type",         formData.property_type);
+      fd.append("latitude",              formData.latitude);
+      fd.append("longitude",             formData.longitude);
+      fd.append("amenities",             JSON.stringify(formData.amenities));
       if (formData.total_slots) fd.append("total_slots", formData.total_slots);
 
       // ✅ Send new images only (not existing server images)
@@ -532,15 +533,16 @@ export default function LandlordListings() {
 
   const handleEdit = (listing) => {
     setFormData({
-      title:         listing.title         || "",
-      description:   listing.description   || "",
-      price:         listing.price         || "",
-      address:       listing.address       || "",
-      barangay:      listing.barangay      || "",
-      property_type: listing.property_type || "House",
-      latitude:      listing.latitude      || "",
-      longitude:     listing.longitude     || "",
-      amenities:     listing.amenities?.map((a) => {
+      title:                 listing.title                 || "",
+      description:           listing.description           || "",
+      terms_and_conditions:  listing.terms_and_conditions   || "",
+      price:                 listing.price                 || "",
+      address:               listing.address               || "",
+      barangay:              listing.barangay              || "",
+      property_type:         listing.property_type         || "House",
+      latitude:              listing.latitude              || "",
+      longitude:             listing.longitude             || "",
+      amenities:             listing.amenities?.map((a) => {
         // Static amenities use icon as key, DB custom amenities use name
         const isStatic = AMENITIES.find((s) => s.id === a.icon);
         return isStatic ? a.icon : a.name;
@@ -674,6 +676,17 @@ export default function LandlordListings() {
                 <label className="block text-sm font-medium mb-2">Description *</label>
                 <textarea name="description" value={formData.description} onChange={handleInputChange}
                   placeholder="Describe your property..." rows="4"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3d6b35]" />
+              </div>
+
+              {/* TERMS AND CONDITIONS */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Terms & Conditions
+                  <span className="text-xs text-gray-400 font-normal ml-2">(house rules, deposit policy, pet policy, etc. — optional)</span>
+                </label>
+                <textarea name="terms_and_conditions" value={formData.terms_and_conditions} onChange={handleInputChange}
+                  placeholder="e.g. 2 months deposit required, no pets allowed, minimum 6-month lease..." rows="4"
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3d6b35]" />
               </div>
 

@@ -63,6 +63,7 @@ export default function ListingDetail() {
   const [reserveStep,      setReserveStep]      = useState("warning"); // warning | form | success
   const [moveInDate,       setMoveInDate]       = useState("");
   const [reserveNotes,     setReserveNotes]     = useState("");
+  const [termsAccepted,    setTermsAccepted]    = useState(false);
   const [reserving,        setReserving]        = useState(false);
   const [reserveError,     setReserveError]     = useState("");
 
@@ -71,6 +72,7 @@ export default function ListingDetail() {
     setReserveError("");
     setMoveInDate("");
     setReserveNotes("");
+    setTermsAccepted(false);
     setShowReserveModal(true);
   };
 
@@ -85,11 +87,15 @@ export default function ListingDetail() {
   const isSaved = savedIds.includes(Number(id));
 
   const handleReserve = async () => {
+    if (!termsAccepted) {
+      setReserveError("Please confirm you have read and agree to the terms and conditions.");
+      return;
+    }
     setReserveError("");
     setReserving(true);
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/reserve/${id}`,
-        { move_in_date: moveInDate || null, notes: reserveNotes || null },
+        { move_in_date: moveInDate || null, notes: reserveNotes || null, terms_accepted: termsAccepted },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setReserveStep("success");
@@ -299,6 +305,15 @@ export default function ListingDetail() {
               {listing.description}
             </p>
           </div>
+
+          {listing.terms_and_conditions && (
+            <div className="border-b pb-6">
+              <h3 className="font-semibold mb-2">Terms & Conditions</h3>
+              <p className="text-sm text-gray-600 whitespace-pre-line">
+                {listing.terms_and_conditions}
+              </p>
+            </div>
+          )}
 
           <div className="border-b pb-6">
             <h3 className="font-semibold mb-4">What this place offers</h3>
@@ -514,12 +529,32 @@ export default function ListingDetail() {
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition resize-none" />
                   </div>
 
+                  {listing.terms_and_conditions && (
+                    <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-xl max-h-32 overflow-y-auto">
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
+                        Landlord's Terms & Conditions
+                      </p>
+                      <p className="text-xs text-gray-600 whitespace-pre-line">
+                        {listing.terms_and_conditions}
+                      </p>
+                    </div>
+                  )}
+
+                  <label className="flex items-start gap-2.5 mb-5 cursor-pointer select-none">
+                    <input type="checkbox" checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 accent-[#3d6b35] shrink-0" />
+                    <span className="text-xs text-gray-600">
+                      I have read and agree to the property's terms and conditions{listing.terms_and_conditions ? "" : " (none provided by landlord)"}.
+                    </span>
+                  </label>
+
                   <div className="flex gap-2">
                     <button onClick={() => setReserveStep("warning")}
                       className="px-4 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
                       ← Back
                     </button>
-                    <button onClick={handleReserve} disabled={reserving}
+                    <button onClick={handleReserve} disabled={reserving || !termsAccepted}
                       className="flex-1 py-3 bg-[#3d6b35] text-white rounded-xl font-semibold hover:bg-[#2d5525] transition flex items-center justify-center gap-2 disabled:opacity-50">
                       {reserving ? <><Loader size={16} className="animate-spin" /> Submitting...</> : "Submit Request"}
                     </button>

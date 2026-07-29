@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 // Navbar components
 import Navbar from "../components/navbar/Navbar";
 import MobileBottomNav from "../components/navbar/MobileBottomNav";
+import ChatbotWidget from "../components/ChatbotWidget";
 
 export default function MainLayout() {
   return (
@@ -17,6 +18,9 @@ export default function MainLayout() {
 
       {/* MOBILE BOTTOM NAV */}
       <MobileBottomNav />
+
+      {/* CHATBOT WIDGET — floats on every page under MainLayout */}
+      <ChatbotWidget />
     </>
   );
 }

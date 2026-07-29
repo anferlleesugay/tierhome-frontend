@@ -62,20 +62,21 @@ export default function ListingDetail() {
   const [showReserveModal, setShowReserveModal] = useState(false);
   const [reserveStep,      setReserveStep]      = useState("warning"); // warning | form | success
   const [moveInDate,       setMoveInDate]       = useState("");
+  const [moveOutDate,      setMoveOutDate]      = useState("");
   const [reserveNotes,     setReserveNotes]     = useState("");
   const [termsAccepted,    setTermsAccepted]    = useState(false);
   const [reserving,        setReserving]        = useState(false);
   const [reserveError,     setReserveError]     = useState("");
 
   const openReserveModal = () => {
-    setReserveStep("warning");
-    setReserveError("");
-    setMoveInDate("");
-    setReserveNotes("");
-    setTermsAccepted(false);
-    setShowReserveModal(true);
-  };
-
+      setReserveStep("warning");
+      setReserveError("");
+      setMoveInDate("");
+      setMoveOutDate("");
+      setReserveNotes("");
+      setTermsAccepted(false);
+      setShowReserveModal(true);
+    };
   const closeReserveModal = () => {
     setShowReserveModal(false);
     setReserveStep("warning");
@@ -95,7 +96,7 @@ export default function ListingDetail() {
     setReserving(true);
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/reserve/${id}`,
-        { move_in_date: moveInDate || null, notes: reserveNotes || null, terms_accepted: termsAccepted },
+        { move_in_date: moveInDate || null, move_out_date: moveOutDate || null, notes: reserveNotes || null, terms_accepted: termsAccepted },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setReserveStep("success");
@@ -516,6 +517,15 @@ export default function ListingDetail() {
                     </label>
                     <input type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)}
                       min={new Date().toISOString().split("T")[0]}
+                      className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition" />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
+                      Expected Move-out Date <span className="text-gray-400 font-normal normal-case">(optional — leave blank if month-to-month)</span>
+                    </label>
+                    <input type="date" value={moveOutDate} onChange={(e) => setMoveOutDate(e.target.value)}
+                      min={moveInDate || new Date().toISOString().split("T")[0]}
                       className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition" />
                   </div>
 

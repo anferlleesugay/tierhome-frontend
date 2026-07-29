@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Calendar, MapPin, CheckCircle, XCircle, Clock,
-  AlertCircle, Loader, ArrowLeft, Ban,
+  AlertCircle, Loader, ArrowLeft, Ban, X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -26,6 +26,10 @@ export default function Reservations() {
   const [loading,      setLoading]      = useState(true);
   const [cancelling,   setCancelling]   = useState(null);
 
+  // ✅ Cancel reason modal state
+  const [cancelTargetId, setCancelTargetId] = useState(null);
+  const [cancelReason,   setCancelReason]   = useState("");
+
   const headers = { Authorization: `Bearer ${token}` };
 
   const fetchReservations = async () => {
@@ -38,11 +42,25 @@ export default function Reservations() {
 
   useEffect(() => { fetchReservations(); }, [token]);
 
-  const handleCancel = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this reservation?")) return;
-    setCancelling(id);
+  const openCancelModal = (id) => {
+    setCancelTargetId(id);
+    setCancelReason("");
+  };
+
+  const closeCancelModal = () => {
+    setCancelTargetId(null);
+    setCancelReason("");
+  };
+
+  const confirmCancel = async () => {
+    if (!cancelTargetId) return;
+    setCancelling(cancelTargetId);
     try {
-      await axios.put(`${API}/reservation/${id}/cancel`, {}, { headers });
+      await axios.put(`${API}/reservation/${cancelTargetId}/cancel`,
+        { reason: cancelReason || null },
+        { headers }
+      );
+      closeCancelModal();
       fetchReservations();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to cancel.");
@@ -148,6 +166,12 @@ export default function Reservations() {
                       <p>{new Date(res.move_in_date).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" })}</p>
                     </div>
                   )}
+                  {res.move_out_date && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-0.5">Expected Move-out</p>
+                      <p>{new Date(res.move_out_date).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" })}</p>
+                    </div>
+                  )}
                 </div>
 
                 {res.notes && (
@@ -173,14 +197,20 @@ export default function Reservations() {
                 {res.status === "rejected" && (
                   <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
                     <XCircle size={13} className="shrink-0" />
-                    Your reservation was rejected. You may reserve another property.
+                    Your reservation was rejected.{res.cancellation_reason ? ` Reason: ${res.cancellation_reason}` : " You may reserve another property."}
+                  </div>
+                )}
+                {res.status === "cancelled" && res.cancellation_reason && (
+                  <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
+                    <Ban size={13} className="shrink-0" />
+                    Cancelled{res.cancelled_by ? ` by ${res.cancelled_by}` : ""}. Reason: {res.cancellation_reason}
                   </div>
                 )}
 
                 {/* Cancel button */}
                 {canCancel && (
                   <button
-                    onClick={() => handleCancel(res.id)}
+                    onClick={() => openCancelModal(res.id)}
                     disabled={cancelling === res.id}
                     className="w-full py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition flex items-center justify-center gap-2 disabled:opacity-50"
                   >
@@ -193,6 +223,49 @@ export default function Reservations() {
           );
         })}
       </div>
+
+      {/* ✅ CANCEL REASON MODAL */}
+      {cancelTargetId && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
+          onClick={() => { if (cancelling === null) closeCancelModal(); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+            onClick={(e) => e.stopPropagation()}>
+
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-bold text-gray-900 text-lg">Cancel Reservation</h2>
+              <button onClick={closeCancelModal}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+                <X size={18} className="text-gray-600" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5">
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to cancel this reservation? Letting the landlord know why helps them understand.
+              </p>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
+                Reason <span className="text-gray-400 font-normal normal-case">(optional)</span>
+              </label>
+              <textarea value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="e.g. Found another place, change of plans..."
+                rows={3}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition resize-none mb-5" />
+
+              <div className="flex gap-2">
+                <button onClick={closeCancelModal}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                  Keep Reservation
+                </button>
+                <button onClick={confirmCancel} disabled={cancelling !== null}
+                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                  {cancelling !== null ? <Loader size={14} className="animate-spin" /> : <Ban size={14} />}
+                  Cancel It
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

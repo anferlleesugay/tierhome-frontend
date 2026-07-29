@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Calendar, MapPin, CheckCircle, XCircle, Clock,
-  Loader, User, Ban, ChevronDown, ChevronUp,
+  Loader, User, Ban, ChevronDown, ChevronUp, X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -28,6 +28,10 @@ export default function LandlordReservations() {
   const [filter,       setFilter]       = useState("all");
   const [expanded,     setExpanded]     = useState(null);
 
+  // ✅ Reject/remove reason modal state
+  const [rejectTargetId, setRejectTargetId] = useState(null);
+  const [rejectReason,   setRejectReason]   = useState("");
+
   const headers = { Authorization: `Bearer ${token}` };
 
   const fetchReservations = async () => {
@@ -40,12 +44,36 @@ export default function LandlordReservations() {
 
   useEffect(() => { fetchReservations(); }, [token]);
 
-  const handleRespond = async (id, status) => {
-    const label = status === "approved" ? "approve" : "reject";
-    if (!window.confirm(`Are you sure you want to ${label} this reservation?`)) return;
-    setResponding(id + status);
+  const handleApprove = async (id) => {
+    if (!window.confirm("Are you sure you want to approve this reservation?")) return;
+    setResponding(id + "approved");
     try {
-      await axios.put(`${API}/reservation/${id}/respond`, { status }, { headers });
+      await axios.put(`${API}/reservation/${id}/respond`, { status: "approved" }, { headers });
+      fetchReservations();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to respond.");
+    } finally { setResponding(null); }
+  };
+
+  const openRejectModal = (id) => {
+    setRejectTargetId(id);
+    setRejectReason("");
+  };
+
+  const closeRejectModal = () => {
+    setRejectTargetId(null);
+    setRejectReason("");
+  };
+
+  const confirmReject = async () => {
+    if (!rejectTargetId) return;
+    setResponding(rejectTargetId + "rejected");
+    try {
+      await axios.put(`${API}/reservation/${rejectTargetId}/respond`,
+        { status: "rejected", reason: rejectReason || null },
+        { headers }
+      );
+      closeRejectModal();
       fetchReservations();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to respond.");
@@ -182,6 +210,12 @@ export default function LandlordReservations() {
                         <p>{new Date(res.move_in_date).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" })}</p>
                       </div>
                     )}
+                    {res.move_out_date && (
+                      <div>
+                        <p className="font-semibold text-gray-700 mb-0.5">Expected Move-out</p>
+                        <p>{new Date(res.move_out_date).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" })}</p>
+                      </div>
+                    )}
                     <div>
                       <p className="font-semibold text-gray-700 mb-0.5">Tenant Email</p>
                       <p>{tenant?.email}</p>
@@ -201,11 +235,18 @@ export default function LandlordReservations() {
                     </div>
                   )}
 
+                  {res.status === "cancelled" && res.cancellation_reason && (
+                    <div className="text-xs text-gray-500 bg-gray-50 rounded-xl px-3 py-2.5">
+                      <p className="font-semibold text-gray-700 mb-0.5">Cancellation Reason {res.cancelled_by ? `(by ${res.cancelled_by})` : ""}</p>
+                      <p>{res.cancellation_reason}</p>
+                    </div>
+                  )}
+
                   {/* Action buttons — only for pending */}
                   {res.status === "pending" && (
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleRespond(res.id, "approved")}
+                        onClick={() => handleApprove(res.id)}
                         disabled={!!responding}
                         className="flex-1 py-2.5 bg-[#3d6b35] text-white rounded-xl text-sm font-semibold hover:bg-[#2d5525] transition flex items-center justify-center gap-2 disabled:opacity-50"
                       >
@@ -215,7 +256,7 @@ export default function LandlordReservations() {
                         Approve
                       </button>
                       <button
-                        onClick={() => handleRespond(res.id, "rejected")}
+                        onClick={() => openRejectModal(res.id)}
                         disabled={!!responding}
                         className="flex-1 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition flex items-center justify-center gap-2 disabled:opacity-50"
                       >
@@ -234,17 +275,9 @@ export default function LandlordReservations() {
                   )}
 
                   {/* ✅ Landlord can remove ANY active reservation — listing goes back to available */}
-                  {!["cancelled", "rejected"].includes(res.status) && (
+                  {!["cancelled", "rejected"].includes(res.status) && res.status !== "pending" && (
                     <button
-                      onClick={async () => {
-                        if (!window.confirm("Remove this reservation? The listing will go back to available.")) return;
-                        try {
-                          await axios.put(`${API}/reservation/${res.id}/respond`, { status: "rejected" }, { headers });
-                          fetchReservations();
-                        } catch (err) {
-                          alert(err.response?.data?.message || "Failed to remove reservation.");
-                        }
-                      }}
+                      onClick={() => openRejectModal(res.id)}
                       className="w-full py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition flex items-center justify-center gap-2"
                     >
                       <XCircle size={14} /> Remove Reservation
@@ -256,6 +289,49 @@ export default function LandlordReservations() {
           );
         })}
       </div>
+
+      {/* ✅ REJECT / REMOVE REASON MODAL */}
+      {rejectTargetId && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
+          onClick={() => { if (!responding) closeRejectModal(); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+            onClick={(e) => e.stopPropagation()}>
+
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-bold text-gray-900 text-lg">Reject Reservation</h2>
+              <button onClick={closeRejectModal}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+                <X size={18} className="text-gray-600" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5">
+              <p className="text-sm text-gray-600 mb-4">
+                Letting the tenant know why helps them find a better fit elsewhere.
+              </p>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
+                Reason <span className="text-gray-400 font-normal normal-case">(optional)</span>
+              </label>
+              <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="e.g. Unit no longer available, requirements not met..."
+                rows={3}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition resize-none mb-5" />
+
+              <div className="flex gap-2">
+                <button onClick={closeRejectModal}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                  Cancel
+                </button>
+                <button onClick={confirmReject} disabled={!!responding}
+                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                  {responding ? <Loader size={14} className="animate-spin" /> : <XCircle size={14} />}
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

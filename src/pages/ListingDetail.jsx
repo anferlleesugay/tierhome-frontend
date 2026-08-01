@@ -60,7 +60,7 @@ export default function ListingDetail() {
 
   // gallery states
   const [showReserveModal, setShowReserveModal] = useState(false);
-  const [reserveStep,      setReserveStep]      = useState("warning"); // warning | form | success
+  const [reserveStep,      setReserveStep]      = useState("terms"); // terms | form | success
   const [moveInDate,       setMoveInDate]       = useState("");
   const [moveOutDate,      setMoveOutDate]      = useState("");
   const [reserveNotes,     setReserveNotes]     = useState("");
@@ -69,7 +69,7 @@ export default function ListingDetail() {
   const [reserveError,     setReserveError]     = useState("");
 
   const openReserveModal = () => {
-      setReserveStep("warning");
+      setReserveStep("terms");
       setReserveError("");
       setMoveInDate("");
       setMoveOutDate("");
@@ -79,7 +79,7 @@ export default function ListingDetail() {
     };
   const closeReserveModal = () => {
     setShowReserveModal(false);
-    setReserveStep("warning");
+    setReserveStep("terms");
   };
   const [index,       setIndex]       = useState(0);
   const [mobileIndex, setMobileIndex] = useState(0);
@@ -438,7 +438,7 @@ export default function ListingDetail() {
 
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-bold text-gray-900 text-lg">
-                {reserveStep === "warning" ? "Before You Reserve" :
+                {reserveStep === "terms" ? "Terms & Conditions" :
                  reserveStep === "success" ? "Request Sent!" : "Reserve Property"}
               </h2>
               <button onClick={closeReserveModal}
@@ -449,42 +449,41 @@ export default function ListingDetail() {
 
             <div className="px-6 py-5">
 
-              {/* ── STEP 1: Warning ── */}
-              {reserveStep === "warning" && (
+              {/* ── STEP 1: Terms & Conditions ── */}
+              {reserveStep === "terms" && (
                 <div>
-                  <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <AlertCircle size={28} className="text-amber-500" />
-                  </div>
-                  <p className="text-sm text-gray-600 text-center mb-5">
-                    Please make sure you have spoken with the landlord before reserving.
-                  </p>
-                  <div className="space-y-2 mb-6">
-                    {[
-                      "Messaged the landlord first",
-                      "Discussed the rental terms",
-                      "Confirmed the landlord is willing to accept you",
-                    ].map((item) => (
-                      <div key={item} className="flex items-center gap-2 text-sm text-gray-700">
-                        <CheckCircle size={16} className="text-[#3d6b35] shrink-0" />
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        closeReserveModal();
-                        navigate(`/tenant/messages?landlord=${listing.landlord?.id}&listing=${listing.id}`);
-                      }}
-                      className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
-                      Message Landlord
-                    </button>
-                    <button
-                      onClick={() => setReserveStep("form")}
-                      className="flex-1 py-2.5 bg-[#3d6b35] text-white rounded-xl text-sm font-semibold hover:bg-[#2d5525] transition">
-                      Already Talked →
-                    </button>
-                  </div>
+                  {listing.terms_and_conditions ? (
+                    <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-xl max-h-64 overflow-y-auto">
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                        Landlord's Terms & Conditions
+                      </p>
+                      <p className="text-sm text-gray-600 whitespace-pre-line">
+                        {listing.terms_and_conditions}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                      <p className="text-sm text-gray-500">
+                        This landlord has not provided specific terms and conditions for this listing.
+                      </p>
+                    </div>
+                  )}
+
+                  <label className="flex items-start gap-2.5 mb-5 cursor-pointer select-none">
+                    <input type="checkbox" checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 accent-[#3d6b35] shrink-0" />
+                    <span className="text-sm text-gray-600">
+                      I have read and agree to the property's terms and conditions{listing.terms_and_conditions ? "" : " (none provided by landlord)"}.
+                    </span>
+                  </label>
+
+                  <button
+                    onClick={() => setReserveStep("form")}
+                    disabled={!termsAccepted}
+                    className="w-full py-3 bg-[#3d6b35] text-white rounded-xl font-semibold hover:bg-[#2d5525] transition disabled:opacity-50">
+                    Continue to Reservation →
+                  </button>
                 </div>
               )}
 
@@ -539,31 +538,12 @@ export default function ListingDetail() {
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition resize-none" />
                   </div>
 
-                  {listing.terms_and_conditions && (
-                    <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-xl max-h-32 overflow-y-auto">
-                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
-                        Landlord's Terms & Conditions
-                      </p>
-                      <p className="text-xs text-gray-600 whitespace-pre-line">
-                        {listing.terms_and_conditions}
-                      </p>
-                    </div>
-                  )}
-
-                  <label className="flex items-start gap-2.5 mb-5 cursor-pointer select-none">
-                    <input type="checkbox" checked={termsAccepted}
-                      onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="mt-0.5 w-4 h-4 accent-[#3d6b35] shrink-0" />
-                    <span className="text-xs text-gray-600">
-                      I have read and agree to the property's terms and conditions{listing.terms_and_conditions ? "" : " (none provided by landlord)"}.
-                    </span>
-                  </label>
-
                   <div className="flex gap-2">
-                    <button onClick={() => setReserveStep("warning")}
+                    <button onClick={() => setReserveStep("terms")}
                       className="px-4 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
                       ← Back
                     </button>
+                    
                     <button onClick={handleReserve} disabled={reserving || !termsAccepted}
                       className="flex-1 py-3 bg-[#3d6b35] text-white rounded-xl font-semibold hover:bg-[#2d5525] transition flex items-center justify-center gap-2 disabled:opacity-50">
                       {reserving ? <><Loader size={16} className="animate-spin" /> Submitting...</> : "Submit Request"}

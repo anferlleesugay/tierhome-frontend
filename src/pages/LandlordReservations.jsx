@@ -34,15 +34,21 @@ export default function LandlordReservations() {
 
   const headers = { Authorization: `Bearer ${token}` };
 
-  const fetchReservations = async () => {
+  const fetchReservations = async (silent = false) => {
     try {
       const res = await axios.get(`${API}/landlord-reservations`, { headers });
       setReservations(res.data.data || []);
     } catch { }
-    finally { setLoading(false); }
+    finally { if (!silent) setLoading(false); }
   };
 
-  useEffect(() => { fetchReservations(); }, [token]);
+  useEffect(() => {
+    fetchReservations();
+    // ✅ Auto-refresh every 15s so approvals/cancellations from the tenant side show up
+    // without needing a manual page reload
+    const interval = setInterval(() => fetchReservations(true), 15000);
+    return () => clearInterval(interval);
+  }, [token]);
 
   const handleApprove = async (id) => {
     if (!window.confirm("Are you sure you want to approve this reservation?")) return;

@@ -12,6 +12,7 @@ import icon from "../../assets/icon.png";
 
 import SearchBar from "./SearchBar";
 import MobileSearchModal from "./MobileSearchModal";
+import NotificationBell from "./NotificationBell";
 import MobileBottomNav from "./MobileBottomNav";
 import HamburgerMenu from "./HamburgerMenu";
 
@@ -47,6 +48,8 @@ export default function Navbar() {
   const location  = useLocation();
   const { user, isLoggedIn, isVerified, role, logout } = useAuth();
 
+  const isWelcomePage = location.pathname === "/" && !isLoggedIn;
+
   const [scrolled,      setScrolled]      = useState(false);
   const [openDropdown,  setOpenDropdown]  = useState(false);
   const [barangay,      setBarangay]      = useState("All Barangays");
@@ -57,9 +60,24 @@ export default function Navbar() {
 
   const dropdownRef = useRef(null);
 
+  // ✅ Scroll listener with hysteresis (dead zone) + rAF throttling to stop flickering.
+  // Enters "scrolled" state past 100px, only exits back past 60px — the 40px gap
+  // between thresholds prevents rapid toggling when scroll position hovers near the edge.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80);
-    window.addEventListener("scroll", onScroll);
+    let ticking = false;
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+
+      window.requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setScrolled((prev) => (prev ? y > 60 : y > 100));
+        ticking = false;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -123,7 +141,9 @@ export default function Navbar() {
           </Link>
 
           {/* Center — nav links for landlord/admin, search for tenant/guest */}
-          {isLandlord ? (
+          {isWelcomePage ? (
+            <div />
+          ) : isLandlord ? (
             <div className="flex items-center gap-1">
               {landlordLinks.map((l) => <TopNavLink key={l.to} {...l} />)}
             </div>
@@ -145,7 +165,8 @@ export default function Navbar() {
           )}
 
           {/* Right — auth */}
-          <div className="flex items-center gap-4 relative shrink-0">
+          <div className="flex items-center gap-2 relative shrink-0">
+            {isLoggedIn && <NotificationBell />}
             {!isLoggedIn ? (
               <>
                 <button onClick={() => navigate("/login", { state: { background: location } })}
@@ -247,7 +268,9 @@ export default function Navbar() {
         <div className="md:hidden flex items-center justify-between px-4 h-full">
           <Link to="/"><img src={icon} className="w-10 h-10 object-contain" /></Link>
 
-          {isLandlord || isAdmin ? (
+        {isWelcomePage ? (
+            <div className="flex-1" />
+          ) : isLandlord || isAdmin ? (
             <span className="flex-1 mx-4 text-center text-sm font-semibold text-gray-700">
               {isLandlord ? "Landlord Portal" : "Admin Portal"}
             </span>
@@ -258,7 +281,6 @@ export default function Navbar() {
               <span className="text-sm text-gray-400 truncate">Search properties...</span>
             </button>
           )}
-
           <button onClick={() => setShowHamburger(true)}
             className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition">
             <Menu size={22} className="text-gray-700" />

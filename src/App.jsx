@@ -5,7 +5,7 @@ import { useAuth } from "./context/AuthContext";
 import MainLayout from "./layouts/MainLayout";
 
 // Pages
-import LandingPage from "./pages/LandingPage";
+import Welcome from "./pages/Welcome";
 import Browse from "./pages/Browse";
 import Verify from "./pages/Verify";
 import ListingDetail from "./pages/ListingDetail";
@@ -81,16 +81,15 @@ function App() {
   if (loading) return null;
 
   const redirectHome = () => {
-    if (!isLoggedIn) return <LandingPage />;
+    if (!isLoggedIn) return <Welcome />;
     if (role === "landlord") return <Navigate to="/landlord/dashboard" replace />;
     if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
-    return <LandingPage />;
+    return <Navigate to="/browse" replace />;
   };
 
   const protectBrowse = () => {
-    if (!isLoggedIn) return <Navigate to="/login" replace />;
-    if (role === "landlord") return <Navigate to="/landlord/dashboard" replace />;
-    if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
+    if (isLoggedIn && role === "landlord") return <Navigate to="/landlord/dashboard" replace />;
+    if (isLoggedIn && role === "admin") return <Navigate to="/admin/dashboard" replace />;
     return <Browse />;
   };
 

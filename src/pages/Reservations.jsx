@@ -32,15 +32,21 @@ export default function Reservations() {
 
   const headers = { Authorization: `Bearer ${token}` };
 
-  const fetchReservations = async () => {
+  const fetchReservations = async (silent = false) => {
     try {
       const res = await axios.get(`${API}/reservations`, { headers });
       setReservations(res.data.data || []);
     } catch { }
-    finally { setLoading(false); }
+    finally { if (!silent) setLoading(false); }
   };
 
-  useEffect(() => { fetchReservations(); }, [token]);
+  useEffect(() => {
+    fetchReservations();
+    // ✅ Auto-refresh every 15s so approvals/rejections from the landlord side show up
+    // without needing a manual page reload
+    const interval = setInterval(() => fetchReservations(true), 15000);
+    return () => clearInterval(interval);
+  }, [token]);
 
   const openCancelModal = (id) => {
     setCancelTargetId(id);

@@ -1,5 +1,5 @@
 // FILE: src/pages/Ranking.jsx
-// UPDATED: Added suggestive input validation warnings
+// UPDATED: Merged Monthly Utility Costs into Monthly Expenses (single field)
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -35,14 +35,14 @@ const displayPeso = (num) =>
 // ================================================
 function PesoInput({ label, sublabel, value, onChange }) {
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <label className="block text-[12px] font-semibold text-gray-700 uppercase tracking-wide mb-1">
         {label}
       </label>
-      {sublabel && (
-        <p className="text-[11px] text-gray-400 mb-1.5">{sublabel}</p>
-      )}
-      <div className="relative">
+      <p className="text-[11px] text-gray-400 mb-1.5 min-h-[28px] leading-snug">
+        {sublabel || ""}
+      </p>
+      <div className="relative mt-auto">
         <span
           className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold"
           style={{ color: "#3d6b35" }}
@@ -146,12 +146,11 @@ function TierHeader({ tier, count }) {
 // ================================================
 // VALIDATION FUNCTION
 // ================================================
-function validateFinancialInput(grossIncome, expenses, utilities, savings) {
+function validateFinancialInput(grossIncome, expenses, savings) {
   const warnings = [];
 
   const gi = parsePeso(grossIncome);
   const exp = parsePeso(expenses);
-  const ut = parsePeso(utilities);
   const sav = parsePeso(savings);
 
   // Warning 1: Expenses exceed income
@@ -166,7 +165,7 @@ function validateFinancialInput(grossIncome, expenses, utilities, savings) {
   if (gi >= 50000 && exp < 5000) {
     warnings.push({
       type: "warning",
-      message: "Your reported expenses seem very low for your income level. Did you include groceries, transportation, loans, SSS, PhilHealth, and other deductions?",
+      message: "Your reported expenses seem very low for your income level. Did you include groceries, transportation, loans, utilities, SSS, PhilHealth, and other deductions?",
     });
   }
 
@@ -179,7 +178,7 @@ function validateFinancialInput(grossIncome, expenses, utilities, savings) {
   }
 
   // Warning 4: Negative disposable income
-  const disposable = gi - exp - ut;
+  const disposable = gi - exp;
   if (disposable < 0) {
     warnings.push({
       type: "error",
@@ -215,7 +214,6 @@ export default function Ranking() {
 
   const [grossIncome, setGrossIncome] = useState("");
   const [monthlyExpenses, setMonthlyExpenses] = useState("");
-  const [utilityCosts, setUtilityCosts] = useState("");
   const [availableSavings, setAvailableSavings] = useState("");
 
   const [computed, setComputed] = useState(null);
@@ -236,27 +234,25 @@ export default function Ranking() {
   // Live formula preview + validation
   const gi = parsePeso(grossIncome);
   const me = parsePeso(monthlyExpenses);
-  const uc = parsePeso(utilityCosts);
-  const disposablePreview = Math.max(0, gi - me - uc);
+  const disposablePreview = Math.max(0, gi - me);
   const maxRentPreview = disposablePreview * 0.3;
 
   // Update warnings as user types
   useEffect(() => {
-    if (grossIncome || monthlyExpenses || utilityCosts || availableSavings) {
+    if (grossIncome || monthlyExpenses || availableSavings) {
       const warnings = validateFinancialInput(
         grossIncome,
         monthlyExpenses,
-        utilityCosts,
         availableSavings
       );
       setValidationWarnings(warnings);
     } else {
       setValidationWarnings([]);
     }
-  }, [grossIncome, monthlyExpenses, utilityCosts, availableSavings]);
+  }, [grossIncome, monthlyExpenses, availableSavings]);
 
   const handleSubmit = async () => {
-    if (!gi || !me === undefined || !uc === undefined || !parsePeso(availableSavings) === undefined) {
+    if (!gi || me === undefined || parsePeso(availableSavings) === undefined) {
       setError("Please fill in all fields.");
       return;
     }
@@ -276,7 +272,6 @@ export default function Ranking() {
         {
           gross_income: gi,
           monthly_expenses: me,
-          utility_costs: uc,
           available_savings: parsePeso(availableSavings),
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -371,13 +366,12 @@ export default function Ranking() {
             <p className="text-[11px] mb-2">The affordability recommendations are based on your input. Remember:</p>
             <div className="space-y-1.5 ml-2 text-[11px]">
               <p><span className="font-semibold">Gross Income</span> = Before tax/deductions</p>
-              <p><span className="font-semibold">Expenses</span> = Actual costs (groceries, transportation, loans, SSS, PhilHealth, Pag-IBIG, etc.)</p>
-              <p><span className="font-semibold">Utility Costs</span> = Electricity, water, internet</p>
+              <p><span className="font-semibold">Expenses</span> = Actual costs (groceries, transportation, loans, utilities like electricity/water/internet, SSS, PhilHealth, Pag-IBIG, etc.)</p>
               <p><span className="font-semibold">Savings</span> = Realistic amount available for move-in</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
             <PesoInput
               label="Gross Monthly Income"
               sublabel="Your total salary before deductions"
@@ -386,25 +380,19 @@ export default function Ranking() {
             />
             <PesoInput
               label="Monthly Expenses"
-              sublabel="Food, transportation, bills, loans, SSS, PhilHealth, Pag-IBIG, etc."
+              sublabel="Food, transportation, bills, loans, utilities, SSS, PhilHealth, Pag-IBIG, etc."
               value={monthlyExpenses}
               onChange={setMonthlyExpenses}
             />
             <PesoInput
-              label="Monthly Utility Costs"
-              sublabel="Electricity, water, internet"
-              value={utilityCosts}
-              onChange={setUtilityCosts}
-            />
-            <PesoInput
               label="Available Savings"
-              sublabel="Total savings you can use for move-in costs"
+              sublabel="Total savings for move-in costs"
               value={availableSavings}
               onChange={setAvailableSavings}
             />
           </div>
 
-          {/* 🔥 VALIDATION WARNINGS */}
+          {/*  VALIDATION WARNINGS */}
           {validationWarnings.length > 0 && (
             <div className="mb-4 space-y-2">
               {validationWarnings.map((warning, idx) => (
@@ -441,7 +429,7 @@ export default function Ranking() {
                 </span>
               </div>
               <div className="text-[11px] text-gray-400">
-                = {displayPeso(gi)} − {displayPeso(me)} − {displayPeso(uc)}
+                = {displayPeso(gi)} − {displayPeso(me)}
               </div>
               <div className="border-t border-gray-200 pt-1.5 flex items-center justify-between">
                 <span>Max Recommended Rent (30%)</span>
@@ -527,7 +515,7 @@ export default function Ranking() {
               <SummaryCard
                 label="Disposable Income"
                 amount={computed.disposable_income}
-                sublabel="After expenses and utilities"
+                sublabel="After expenses (incl. utilities)"
                 color="#3d6b35"
                 icon={TrendingUp}
               />

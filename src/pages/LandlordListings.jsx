@@ -325,7 +325,7 @@ export default function LandlordListings() {
   const [myRequests,        setMyRequests]        = useState([]);
 
   const [formData, setFormData] = useState({
-    title: "", description: "", terms_and_conditions: "", price: "",
+    title: "", description: "", terms_and_conditions: "", reservation_fee: "", price: "",
     address: "", barangay: "", property_type: "House",
     latitude: "", longitude: "", amenities: [],
     total_slots: "",
@@ -460,7 +460,7 @@ export default function LandlordListings() {
 
   const resetForm = () => {
     setFormData({
-      title: "", description: "", terms_and_conditions: "", price: "",
+      title: "", description: "", terms_and_conditions: "", reservation_fee: "", price: "",
       address: "", barangay: "", property_type: "House",
       latitude: "", longitude: "", amenities: [],
       total_slots: "",
@@ -489,6 +489,7 @@ export default function LandlordListings() {
       fd.append("title",                 formData.title);
       fd.append("description",           formData.description);
       fd.append("terms_and_conditions",  formData.terms_and_conditions);
+      fd.append("reservation_fee",        formData.reservation_fee || 0);
       fd.append("price",                 formData.price);
       fd.append("address",               formData.address);
       fd.append("barangay",              formData.barangay);
@@ -536,6 +537,7 @@ export default function LandlordListings() {
       title:                 listing.title                 || "",
       description:           listing.description           || "",
       terms_and_conditions:  listing.terms_and_conditions   || "",
+      reservation_fee:        listing.reservation_fee        || "",
       price:                 listing.price                 || "",
       address:               listing.address               || "",
       barangay:              listing.barangay              || "",
@@ -688,6 +690,20 @@ export default function LandlordListings() {
                 <textarea name="terms_and_conditions" value={formData.terms_and_conditions} onChange={handleInputChange}
                   placeholder="e.g. 2 months deposit required, no pets allowed, minimum 6-month lease..." rows="4"
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3d6b35]" />
+              </div>
+
+              {/* RESERVATION FEE */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Reservation Fee (₱)
+                  <span className="text-xs text-gray-400 font-normal ml-2">(optional — leave blank or 0 if no fee required)</span>
+                </label>
+                <input type="number" name="reservation_fee" value={formData.reservation_fee} onChange={handleInputChange}
+                  placeholder="e.g. 1500" min="0" step="0.01"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3d6b35]" />
+                <p className="text-xs text-gray-400 mt-1">
+                  This is a sandbox/test payment for demonstration purposes — no real money is processed.
+                </p>
               </div>
 
               {/* FULL ADDRESS */}

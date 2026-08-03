@@ -67,6 +67,9 @@ export default function ListingDetail() {
   const [termsAccepted,    setTermsAccepted]    = useState(false);
   const [reserving,        setReserving]        = useState(false);
   const [reserveError,     setReserveError]     = useState("");
+  const [currentReservationId, setCurrentReservationId] = useState(null);
+  const [payingNow,        setPayingNow]        = useState(false);
+  const [paymentError,     setPaymentError]     = useState("");
 
   const openReserveModal = () => {
       setReserveStep("terms");
@@ -95,15 +98,75 @@ export default function ListingDetail() {
     setReserveError("");
     setReserving(true);
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/reserve/${id}`,
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/reserve/${id}`,
         { move_in_date: moveInDate || null, move_out_date: moveOutDate || null, notes: reserveNotes || null, terms_accepted: termsAccepted },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setReserveStep("success");
+
+      const newReservationId = res.data?.data?.id;
+      setCurrentReservationId(newReservationId);
+
+      // If this listing requires a reservation fee, go to the payment step instead of straight to success
+      if (listing.reservation_fee && Number(listing.reservation_fee) > 0) {
+        setReserveStep("payment");
+      } else {
+        setReserveStep("success");
+      }
     } catch (err) {
       setReserveError(err.response?.data?.message || "Failed to submit reservation.");
     } finally { setReserving(false); }
   };
+
+const handlePay = async () => {
+    setPaymentError("");
+    setPayingNow(true);
+    try {
+      // Create a Xendit Invoice on our backend (sandbox/test mode)
+      const intentRes = await axios.post(`${import.meta.env.VITE_API_URL}/reservation/${currentReservationId}/pay`,
+        {}, { headers: { Authorization: `Bearer ${token}` } });
+
+      const { invoice_url } = intentRes.data.data;
+
+      if (invoice_url) {
+        // Send the tenant to Xendit's hosted sandbox checkout page
+        window.location.href = invoice_url;
+      } else {
+        setPaymentError("Could not start the sandbox payment. Please try again.");
+        setPayingNow(false);
+      }
+
+    } catch (err) {
+      setPaymentError(err.response?.data?.message || "Payment could not be started. Please try again.");
+      setPayingNow(false);
+    }
+  };
+  useEffect(() => {
+    // ✅ Handle tenant returning from PayMongo's sandbox authorization page
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment_return') === '1' && params.get('reservation_id') && token) {
+      const resId = params.get('reservation_id');
+      setCurrentReservationId(resId);
+      setShowReserveModal(true);
+      setReserveStep('payment');
+      setPayingNow(true);
+
+      axios.post(`${import.meta.env.VITE_API_URL}/reservation/${resId}/confirm-payment`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((res) => {
+        if (res.data?.data?.payment_status === 'paid') {
+          setReserveStep('success');
+        } else {
+          setPaymentError("Payment was not completed. You can try again below.");
+        }
+      }).catch(() => {
+        setPaymentError("We couldn't confirm your payment status. Please check My Reservations.");
+      }).finally(() => {
+        setPayingNow(false);
+        // Clean the URL so refreshing doesn't re-trigger this
+        window.history.replaceState({}, '', `/listing/${id}`);
+      });
+    }
+  }, [token]);
 
   useEffect(() => {
     if (authLoading) return; // wait for auth to resolve first
@@ -439,6 +502,7 @@ export default function ListingDetail() {
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-bold text-gray-900 text-lg">
                 {reserveStep === "terms" ? "Terms & Conditions" :
+                 reserveStep === "payment" ? "Reservation Fee Payment" :
                  reserveStep === "success" ? "Request Sent!" : "Reserve Property"}
               </h2>
               <button onClick={closeReserveModal}
@@ -552,6 +616,40 @@ export default function ListingDetail() {
                 </>
               )}
 
+              {/* ── STEP 3: Payment (sandbox) ── */}
+              {reserveStep === "payment" && (
+                <div>
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <p className="text-sm text-blue-800 font-semibold mb-1">Sandbox Payment</p>
+                    <p className="text-xs text-blue-700">
+                      This is a test transaction using PayMongo's sandbox environment. No real money will be charged.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-5">
+                    <span className="text-sm text-gray-600">Reservation Fee</span>
+                    <span className="text-xl font-bold text-[#3d6b35]">
+                      ₱{Number(listing?.reservation_fee || 0).toLocaleString("en-PH")}
+                    </span>
+                  </div>
+
+                  {paymentError && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2.5 rounded-xl mb-4">
+                      <AlertCircle size={15} className="shrink-0" /> {paymentError}
+                    </div>
+                  )}
+
+                  <button onClick={handlePay} disabled={payingNow}
+                    className="w-full py-3 bg-[#3d6b35] text-white rounded-xl font-semibold hover:bg-[#2d5525] transition flex items-center justify-center gap-2 disabled:opacity-50">
+                    {payingNow ? <><Loader size={16} className="animate-spin" /> Processing...</> : "Pay with GCash (Sandbox)"}
+                  </button>
+
+                  <p className="text-xs text-gray-400 text-center mt-3">
+                    You'll be redirected to a test payment page. Select "Authorize Test Payment" to simulate a successful payment.
+                  </p>
+                </div>
+              )}
+
               {/* ── STEP 3: Success ── */}
               {reserveStep === "success" && (
                 <div className="text-center py-2">
@@ -560,7 +658,7 @@ export default function ListingDetail() {
                   </div>
                   <h3 className="font-bold text-gray-900 text-lg mb-2">Request Sent!</h3>
                   <p className="text-sm text-gray-500 mb-5">
-                    Your reservation request has been sent. The landlord will review and respond.
+                    Your reservation request has been sent{listing?.reservation_fee > 0 ? " and your reservation fee payment was confirmed (sandbox)" : ""}. The landlord will review and respond.
                   </p>
                   <button onClick={() => navigate("/tenant/reservations")}
                     className="w-full py-3 bg-[#3d6b35] text-white rounded-xl font-semibold hover:bg-[#2d5525] transition">

@@ -234,6 +234,28 @@ export default function LandlordReservations() {
                     )}
                   </div>
 
+                  {res.payment_status && res.payment_status !== 'not_required' && (
+                    <div className={`flex items-center justify-between text-xs px-3 py-2.5 rounded-xl border ${
+                      res.payment_status === 'paid' ? 'bg-green-50 border-green-100 text-green-700' :
+                      res.payment_status === 'refunded' ? 'bg-gray-50 border-gray-100 text-gray-600' :
+                      res.payment_status === 'refund_processing' ? 'bg-amber-50 border-amber-100 text-amber-700' :
+                      res.payment_status === 'pending' ? 'bg-amber-50 border-amber-100 text-amber-700' :
+                      'bg-red-50 border-red-100 text-red-600'
+                    }`}>
+                      <span className="font-semibold">
+                        Reservation Fee: ₱{Number(res.listing?.reservation_fee || 0).toLocaleString("en-PH")}
+                      </span>
+                      <span className="font-bold uppercase tracking-wide">
+                        {res.payment_status === 'paid' ? 'Paid (Sandbox)' :
+                         res.payment_status === 'refunded' ? 'Refunded (Sandbox)' :
+                         res.payment_status === 'refund_processing' ? 'Refund Processing' :
+                         res.payment_status === 'pending' ? 'Awaiting Payment' :
+                         res.payment_status === 'refund_failed' ? 'Refund Failed — Contact Support' :
+                         'Payment Failed'}
+                      </span>
+                    </div>
+                  )}
+
                   {res.notes && (
                     <div className="text-xs text-gray-500 bg-gray-50 rounded-xl px-3 py-2.5">
                       <p className="font-semibold text-gray-700 mb-0.5">Tenant Notes</p>

@@ -6,7 +6,7 @@ import axios from "axios";
 import {
   LayoutDashboard, Building, Calendar, MessageCircle,
   ChevronRight, LogOut, BadgeCheck, Clock,
-  Eye, CheckCircle, XCircle, AlertCircle, User, Camera,
+  Eye, CheckCircle, XCircle, AlertCircle, User, Camera, BarChart2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -278,6 +278,7 @@ export default function LandlordDashboard() {
           <div className="grid grid-cols-2 gap-2">
             {[
               { label: "Manage Listings", icon: Building, path: "/landlord/listings", color: "#3d6b35" },
+              { label: "Analytics", icon: BarChart2, path: "/landlord/analytics", color: "#7c3aed" },
               { label: "View Reservations", icon: Calendar, path: "/landlord/reservations", color: "#d97706" },
               { label: "Messages", icon: MessageCircle, path: "/landlord/messages", color: "#2563eb" },
               { label: "Verify Identity", icon: BadgeCheck, path: "/verify", color: "#7c3aed", hide: isVerified },

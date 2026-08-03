@@ -110,6 +110,7 @@ export default function Navbar() {
     { to: "/landlord/listings",     icon: Building,        label: "Listings" },
     { to: "/landlord/reservations", icon: Calendar,        label: "Reservations" },
     { to: "/landlord/messages",     icon: MessageCircle,   label: "Messages" },
+    { to: "/landlord/analytics", icon: BarChart2, label: "Analytics" },
   ];
 
   const adminLinks = [

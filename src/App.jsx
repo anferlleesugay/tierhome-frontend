@@ -31,6 +31,7 @@ import LandlordDashboard from "./pages/LandlordDashboard";
 import LandlordListings from "./pages/LandlordListings";
 import LandlordReservations from "./pages/LandlordReservations";
 import LandlordMessages from "./pages/LandlordMessages";
+import LandlordAnalytics from "./pages/LandlordAnalytics";
 
 // Admin
 import AdminDashboard from "./pages/AdminDashboard";
@@ -155,6 +156,8 @@ function App() {
           <Route path="/landlord/messages" element={
             <LandlordOnly><LandlordMessages /></LandlordOnly>
           } />
+          <Route path="/landlord/analytics" element={<LandlordVerifyOnly><LandlordAnalytics /></LandlordVerifyOnly>} />
+          
 
           {/* ADMIN ROUTES */}
           <Route path="/admin/dashboard"    element={<AdminOnly><AdminDashboard /></AdminOnly>} />

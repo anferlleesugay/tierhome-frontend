@@ -40,6 +40,7 @@ export default function BarangayDropdown({ selected, setSelected, close }) {
   return (
     <div
       ref={ref}
+      onClick={(e) => e.stopPropagation()}
       className="
         absolute top-[110%] left-0 w-full min-w-[260px]
         bg-white border border-gray-200

@@ -7,7 +7,10 @@ import { useAuth } from "../../context/AuthContext";
 const API = import.meta.env.VITE_API_URL;
 
 const ICON_MAP = {
-  new_reservation:       { icon: Home,          color: "#2563eb" },
+  new_reservation:            { icon: Home,          color: "#2563eb" },
+  listing_pending_review:     { icon: Building,      color: "#d97706" },
+  verification_pending_review:{ icon: ShieldCheck,   color: "#d97706" },
+  amenity_request_pending:    { icon: Star,          color: "#d97706" },
   reservation_approved:  { icon: CheckCircle,   color: "#3d6b35" },
   reservation_rejected:  { icon: XCircle,       color: "#ef4444" },
   reservation_cancelled: { icon: Ban,           color: "#6b7280" },

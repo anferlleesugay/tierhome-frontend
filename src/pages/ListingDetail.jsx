@@ -320,7 +320,7 @@ const handlePay = async () => {
           {/* LANDLORD PROFILE CARD */}
           <div className="border-b pb-6">
             <h2 className="text-lg font-semibold mb-4">
-              {listing.property_type} hosted by {landlord.first_name || "Landlord"}
+              {listing.property_type} hosted by {landlord.first_name || "Property Owner"}
             </h2>
             <div
               onClick={() => landlord.id && navigate(`/landlord-profile/${landlord.id}`)}
@@ -349,7 +349,7 @@ const handlePay = async () => {
                 </p>
                 {landlord.verification_status === "verified" && (
                   <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
-                    ✅ Verified Landlord
+                    ✅ Verified Property Owner
                   </p>
                 )}
                 <p className="text-xs text-gray-400 mt-0.5">
@@ -466,7 +466,7 @@ const handlePay = async () => {
               }}
               className="w-full h-12 border rounded-xl text-[#3d6b35] font-medium hover:bg-green-50 transition"
             >
-              Message Landlord
+              Message Property Owner
             </button>
 
             <button
@@ -519,7 +519,7 @@ const handlePay = async () => {
                   {listing.terms_and_conditions ? (
                     <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-xl max-h-64 overflow-y-auto">
                       <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                        Landlord's Terms & Conditions
+                        Property Owner's Terms & Conditions
                       </p>
                       <p className="text-sm text-gray-600 whitespace-pre-line">
                         {listing.terms_and_conditions}
@@ -594,7 +594,7 @@ const handlePay = async () => {
 
                   <div className="mb-5">
                     <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
-                      Message to Landlord <span className="text-gray-400 font-normal normal-case">(optional)</span>
+                      Message to Property Owner <span className="text-gray-400 font-normal normal-case">(optional)</span>
                     </label>
                     <textarea value={reserveNotes} onChange={(e) => setReserveNotes(e.target.value)}
                       placeholder="Any notes or questions for the landlord..."

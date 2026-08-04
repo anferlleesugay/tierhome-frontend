@@ -340,7 +340,7 @@ export default function Register() {
           <div className="grid grid-cols-2 gap-2">
             {[
               { value: "tenant",   Icon: Home, title: "Tenant",   sub: "Find affordable housing" },
-              { value: "landlord", Icon: Key,  title: "Landlord", sub: "List your property" },
+              { value: "landlord", Icon: Key,  title: "Property Owner", sub: "List your property" },
             ].map(({ value, Icon, title, sub }) => {
               const active = role === value;
               return (

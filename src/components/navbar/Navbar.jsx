@@ -217,7 +217,7 @@ export default function Navbar() {
                           : role === "landlord" ? "bg-blue-100 text-blue-700"
                           : "bg-purple-100 text-purple-700"
                         }`}>
-                          {role?.charAt(0).toUpperCase() + role?.slice(1)}
+                          {role === "landlord" ? "Property Owner" : role?.charAt(0).toUpperCase() + role?.slice(1)}
                         </span>
                         {isVerified ? (
                           <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">
@@ -273,7 +273,7 @@ export default function Navbar() {
             <div className="flex-1" />
           ) : isLandlord || isAdmin ? (
             <span className="flex-1 mx-4 text-center text-sm font-semibold text-gray-700">
-              {isLandlord ? "Landlord Portal" : "Admin Portal"}
+              {isLandlord ? "Property Owner Portal" : "Admin Portal"}
             </span>
           ) : (
             <button onClick={() => setShowMobileSearch(true)}

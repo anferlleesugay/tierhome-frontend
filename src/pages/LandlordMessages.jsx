@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Send, ArrowLeft, MessageCircle, Search, Loader, Home, ChevronRight, Users, Reply, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const API     = import.meta.env.VITE_API_URL;
 const STORAGE = `${API.replace('/api', '')}/storage/`;
@@ -78,6 +78,8 @@ export default function LandlordMessages() {
   const textareaRef    = useRef(null);
   const headers        = { Authorization: `Bearer ${token}` };
 
+  const [searchParams] = useSearchParams();
+
   const fetchConversations = async () => {
     try {
       const res = await axios.get(`${API}/conversations`, { headers });
@@ -87,6 +89,36 @@ export default function LandlordMessages() {
   };
 
   useEffect(() => { fetchConversations(); }, [token]);
+
+  // ✅ Auto-open a specific tenant's conversation when arriving via
+  // ?tenant=X&listing=Y (e.g. from the "Message [Tenant]" button on the reservations page)
+  useEffect(() => {
+    const tenantId = searchParams.get("tenant");
+    const listingId = searchParams.get("listing");
+    if (!tenantId || conversations.length === 0) return;
+
+    const targetConv = conversations.find((c) =>
+      String(c.tenant?.id) === String(tenantId) &&
+      (!listingId || String(c.listing?.id) === String(listingId))
+    );
+
+    if (targetConv) {
+      const group = buildGroups().find((g) => g.convIds.has(targetConv.id));
+      if (group) setSelectedGroup(group);
+      openConversation(targetConv);
+      setPanel("chat");
+    } else {
+      // No existing conversation with this tenant yet — start one
+      axios.post(`${API}/conversation/${tenantId}`, { listing_id: listingId || null }, { headers })
+        .then((res) => {
+          const newConv = res.data.data;
+          setConversations((prev) => [newConv, ...prev]);
+          setPanel("chat");
+          openConversation(newConv);
+        })
+        .catch(() => {});
+    }
+  }, [conversations, searchParams]);
 
   // ── Group by EACH listing card found across all conversations ──
   const buildGroups = () => {

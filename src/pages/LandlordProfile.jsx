@@ -116,7 +116,7 @@ export default function LandlordProfile() {
               <div className="mb-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs px-3 py-1 rounded-full font-semibold bg-blue-100 text-blue-700">
-                    Landlord
+                    Property Owner
                   </span>
                   {profile?.verification_status === "verified" && (
                     <span className="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Calendar, MapPin, CheckCircle, XCircle, Clock,
-  AlertCircle, Loader, ArrowLeft, Ban, X,
+  AlertCircle, Loader, ArrowLeft, Ban, X, MessageCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -195,10 +195,18 @@ export default function Reservations() {
                   </div>
                 )}
                 {res.status === "approved" && (
-                  <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
-                    <CheckCircle size={13} className="shrink-0" />
-                    Your reservation has been approved! Contact the landlord to finalize.
-                  </div>
+                  <>
+                    <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
+                      <CheckCircle size={13} className="shrink-0" />
+                      Your reservation has been approved! Contact the Property Owner to finalize.
+                    </div>
+                    <button
+                      onClick={() => navigate(`/tenant/messages?landlord=${listing?.landlord?.id}&listing=${listing?.id}`)}
+                      className="w-full py-2.5 border border-[#3d6b35] text-[#3d6b35] rounded-xl text-sm font-semibold hover:bg-green-50 transition flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle size={14} /> Message Property Owner
+                    </button>
+                  </>
                 )}
                 {res.status === "rejected" && (
                   <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">

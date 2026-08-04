@@ -145,14 +145,14 @@ export default function LandlordDashboard() {
             </label>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] text-gray-400 font-medium">Landlord Dashboard</p>
+              <p className="text-[12px] text-gray-400 font-medium">Property Owner Dashboard</p>
               <h1 className="text-[20px] font-bold text-gray-900 truncate">
                 {user?.first_name} {user?.last_name}
               </h1>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {isVerified ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
-                    <BadgeCheck size={13} /> Verified Landlord
+                    <BadgeCheck size={13} /> Verified Property Owner
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600">

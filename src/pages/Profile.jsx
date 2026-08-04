@@ -188,7 +188,7 @@ export default function Profile() {
               {/* Badges */}
               <div className="flex gap-2 mb-1">
                 <span className={`text-xs px-3 py-1 rounded-full font-semibold ${roleColor}`}>
-                  {role?.charAt(0).toUpperCase() + role?.slice(1)}
+                  {role === "landlord" ? "Property Owner" : role?.charAt(0).toUpperCase() + role?.slice(1)}
                 </span>
                 {isVerified && (
                   <span className="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Calendar, MapPin, CheckCircle, XCircle, Clock,
-  Loader, User, Ban, ChevronDown, ChevronUp, X,
+  Loader, User, Ban, ChevronDown, ChevronUp, X, MessageCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -233,6 +233,13 @@ export default function LandlordReservations() {
                       </div>
                     )}
                   </div>
+
+                  <button
+                    onClick={() => navigate(`/landlord/messages?tenant=${tenant?.id}&listing=${listing?.id}`)}
+                    className="w-full py-2.5 border border-[#3d6b35] text-[#3d6b35] rounded-xl text-sm font-semibold hover:bg-green-50 transition flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle size={14} /> Message {tenant?.first_name}
+                  </button>
 
                   {res.payment_status && res.payment_status !== 'not_required' && (
                     <div className={`flex items-center justify-between text-xs px-3 py-2.5 rounded-xl border ${

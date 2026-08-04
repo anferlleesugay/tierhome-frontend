@@ -282,6 +282,7 @@ export default function Navbar() {
               <span className="text-sm text-gray-400 truncate">Search properties...</span>
             </button>
           )}
+          {isLoggedIn && <NotificationBell />}
           <button onClick={() => setShowHamburger(true)}
             className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition">
             <Menu size={22} className="text-gray-700" />

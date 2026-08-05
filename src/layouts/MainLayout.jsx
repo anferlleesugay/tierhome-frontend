@@ -5,13 +5,18 @@ import Navbar from "../components/navbar/Navbar";
 import MobileBottomNav from "../components/navbar/MobileBottomNav";
 import ChatbotWidget from "../components/ChatbotWidget";
 import PushNotificationHandler from "../components/PushNotificationHandler";
+import BackButtonHandler from "../components/BackButtonHandler";
+import ExitHintToast from "../components/ExitHintToast";
+import { useAuth } from "../context/AuthContext";
 
 export default function MainLayout() {
   const location = useLocation();
+  const { isLoggedIn } = useAuth();
 
   // ✅ Hide the AI chatbot bubble on actual messaging pages — a floating
   // chat widget competing with the real conversation UI is confusing, not helpful.
   const isMessagesPage = location.pathname.includes("/messages");
+  const isWelcomePage = location.pathname === "/" && !isLoggedIn;
 
   return (
     <>
@@ -24,12 +29,14 @@ export default function MainLayout() {
       </main>
 
       {/* MOBILE BOTTOM NAV */}
-      <MobileBottomNav />
+      {!isWelcomePage && <MobileBottomNav />}
 
       {/* CHATBOT WIDGET — floats on every page under MainLayout except Messages */}
       {!isMessagesPage && <ChatbotWidget />}
 
       <PushNotificationHandler />
+      <BackButtonHandler />
+      <ExitHintToast />
     </>
   );
 }

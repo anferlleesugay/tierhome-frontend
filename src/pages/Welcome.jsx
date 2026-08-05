@@ -9,6 +9,16 @@ const FADE_DURATION = 1; // seconds — how long the crossfade transition takes
 export default function Welcome() {
   const navigate = useNavigate();
   const videoARef = useRef(null);
+
+  // ✅ Force-disable page scroll while this screen is showing, regardless of
+  // any height-calculation edge cases (navbar height changes, mobile browser
+  // chrome, etc.) — guarantees a truly fixed, non-scrollable hero screen.
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
   const videoBRef = useRef(null);
   const activeIsARef = useRef(true); // which video is currently visible/active
   const [, forceRender] = useState(0);
@@ -73,7 +83,7 @@ export default function Welcome() {
   const activeIsA = activeIsARef.current;
 
   return (
-    <div className="relative min-h-[calc(100vh-64px)] w-full overflow-hidden flex items-center justify-center">
+    <div className="relative h-[calc(100dvh-80px)] w-full overflow-hidden flex items-center justify-center">
 
       {/* BACKGROUND VIDEO — two layered copies, crossfaded to mask the loop cut */}
       <video
@@ -90,7 +100,7 @@ export default function Welcome() {
         ref={videoBRef}
         muted
         playsInline
-        preload="auto"
+        preload="none"
         className="absolute inset-0 w-full h-full object-cover transition-opacity ease-linear"
         style={{ opacity: activeIsA ? 0 : 1, transitionDuration: `${FADE_DURATION}s` }}
       >
@@ -101,7 +111,10 @@ export default function Welcome() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
 
       {/* CONTENT */}
-      <div className="relative z-10 max-w-xl w-full text-center px-6 py-16">
+      <div className="relative z-10 max-w-xl w-full text-center px-6 py-8 md:py-16">
+
+        {/* Logo */}
+        <img src={logo} alt="TierHome" className="h-14 md:h-16 mx-auto mb-6 drop-shadow-lg" />
 
         {/* Title */}
         <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-md">

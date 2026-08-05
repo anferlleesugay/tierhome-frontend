@@ -496,7 +496,7 @@ const handlePay = async () => {
       {showReserveModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
           onClick={() => { if (!reserving) closeReserveModal(); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}>
 
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">

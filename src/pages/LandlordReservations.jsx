@@ -329,7 +329,7 @@ export default function LandlordReservations() {
       {rejectTargetId && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
           onClick={() => { if (!responding) closeRejectModal(); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}>
 
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">

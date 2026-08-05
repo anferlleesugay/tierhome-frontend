@@ -4,6 +4,11 @@
   "webDir": "dist",
   "server": {
     "url": "https://tierhome.live",
-    "cleartext": false
+    "cleartext": false,
+    "allowNavigation": [
+      "*.xendit.co",
+      "checkout.xendit.co",
+      "api.xendit.co"
+    ]
   }
 }

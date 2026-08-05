@@ -997,7 +997,7 @@ export default function LandlordListings() {
                 <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
                   Pick an Icon
                 </label>
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                   {[
                     { id: "wifi",          label: "WiFi",        icon: Wifi },
                     { id: "car",           label: "Parking",     icon: Car },

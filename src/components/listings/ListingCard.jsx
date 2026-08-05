@@ -192,10 +192,10 @@ export default function ListingCard({
 
   const landlordName = listing.landlord
     ? `${listing.landlord.first_name || ""} ${listing.landlord.last_name || ""}`.trim()
-    : "Landlord";
+    : "Property Owner";
 
   const landlordInitial =
-    listing.landlord?.first_name?.charAt(0) || "L";
+    listing.landlord?.first_name?.charAt(0) || "P";
 
   // ================================================
   // TIER STYLE

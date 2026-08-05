@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../components/navbar/Navbar";
 import MobileBottomNav from "../components/navbar/MobileBottomNav";
 import ChatbotWidget from "../components/ChatbotWidget";
+import PushNotificationHandler from "../components/PushNotificationHandler";
 
 export default function MainLayout() {
   const location = useLocation();
@@ -27,6 +28,8 @@ export default function MainLayout() {
 
       {/* CHATBOT WIDGET — floats on every page under MainLayout except Messages */}
       {!isMessagesPage && <ChatbotWidget />}
+
+      <PushNotificationHandler />
     </>
   );
 }

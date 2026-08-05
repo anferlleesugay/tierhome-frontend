@@ -1,0 +1,9 @@
+{
+  "appId": "com.tierhome.app",
+  "appName": "TierHome",
+  "webDir": "dist",
+  "server": {
+    "url": "https://tierhome.live",
+    "cleartext": false
+  }
+}

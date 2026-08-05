@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "819790472265",
+    "project_id": "tierhome-push",
+    "storage_bucket": "tierhome-push.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:819790472265:android:f62212102e62514e6e0b98",
+        "android_client_info": {
+          "package_name": "com.tierhome.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqpdVjUZqapYPH13IYq4mrtzc2MOybJ2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

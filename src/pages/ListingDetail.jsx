@@ -174,7 +174,15 @@ const handlePay = async () => {
       try {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const res = await axios.get(`${API}/listings/${id}`, { headers });
-        setListing(res.data.data);
+        const fetchedListing = res.data.data;
+
+        // ✅ Landlords may only preview their OWN listing — never another
+        // landlord's, even with the ?preview=1 flag. Admin can still view any.
+        if (user?.role === "landlord" && fetchedListing.landlord_id !== user.id) {
+          setNotAllowed("You can only preview your own listings.");
+        } else {
+          setListing(fetchedListing);
+        }
       } catch (err) {
         const status = err.response?.status;
         const msg    = err.response?.data?.message;

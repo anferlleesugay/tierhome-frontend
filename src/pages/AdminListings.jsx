@@ -86,7 +86,7 @@ function ListingCard({ listing, onApprove, onReject, processing, navigate }) {
           ⏳ Pending Review
         </div>
         <button
-          onClick={() => navigate(`/listing/${listing.id}`)}
+          onClick={() => navigate(`/listing/${listing.id}?preview=1`)}
           className="absolute top-3 right-3 bg-white/90 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 hover:bg-white transition shadow-sm">
           <Eye size={12} /> Preview
         </button>

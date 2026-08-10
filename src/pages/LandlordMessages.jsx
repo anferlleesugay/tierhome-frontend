@@ -38,7 +38,7 @@ function ListingCardBubble({ msg, navigate }) {
   const isMine = msg._isMine;
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"} mb-2`}>
-      <div onClick={() => navigate(`/listing/${l.id}`)}
+      <div onClick={() => navigate(`/listing/${l.id}?preview=1`)}
         className="w-56 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm cursor-pointer hover:border-[#3d6b35] hover:shadow-md transition">
         {img && <img src={img} alt={l.title} className="w-full h-32 object-cover" onError={(e) => { e.target.style.display = "none"; }} />}
         <div className="p-3">
@@ -380,7 +380,7 @@ export default function LandlordMessages() {
               const l   = selected.listing;
               const img = l.images?.length > 0 ? STORAGE + l.images[0].image_path : l.image ? STORAGE + l.image : null;
               return (
-                <div onClick={() => navigate(`/listing/${l.id}`)}
+                <div onClick={() => navigate(`/listing/${l.id}?preview=1`)}
                   className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition group">
                   <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
                     {img
@@ -447,7 +447,7 @@ export default function LandlordMessages() {
                             const l = attachedCard;
                             const img = l.images?.length > 0 ? STORAGE + l.images[0].image_path : l.image ? STORAGE + l.image : null;
                             return (
-                              <div onClick={(e) => { e.stopPropagation(); navigate(`/listing/${l.id}`); }}
+                              <div onClick={(e) => { e.stopPropagation(); navigate(`/listing/${l.id}?preview=1`); }}
                                 className={`border-b cursor-pointer hover:opacity-90 transition ${isMine ? "border-white/20" : "border-gray-100"}`}>
                                 {img && <img src={img} alt={l.title} className="w-full h-28 object-cover" onError={(e) => { e.target.style.display = "none"; }} />}
                                 <div className="px-3 py-2">

@@ -220,7 +220,7 @@ export default function ListingCard({
   // HANDLERS
   // ================================================
   const handleCardClick = () => {
-    navigate(`/listing/${listing.id}`);
+    navigate(`/listing/${listing.id}?preview=1`);
   };
 
   const handleSave = async (e) => {
@@ -427,7 +427,7 @@ export default function ListingCard({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/listing/${listing.id}`);
+                navigate(`/listing/${listing.id}?preview=1`);
               }}
               className="text-xs font-semibold hover:underline shrink-0"
               style={{ color: "#3d6b35" }}

@@ -467,8 +467,8 @@ export default function AdminVerification() {
 
       <div className="min-h-screen bg-gray-50 pb-16">
 
-        <div className="bg-white border-b border-gray-100 px-5 md:px-10 py-6">
-          <div className="max-w-[1000px] mx-auto flex items-center justify-between">
+        <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-6">
+          <div className="w-full flex items-center justify-between">
             <div>
               <h1 className="text-[22px] font-bold text-gray-900">
                 Verification Queue
@@ -500,10 +500,10 @@ export default function AdminVerification() {
           </div>
         </div>
 
-        <div className="max-w-[1000px] mx-auto px-5 md:px-10 pt-6">
+        <div className="w-full px-6 md:px-10 pt-6">
 
           {loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {[1, 2].map(i => <SkeletonVerifCard key={i} />)}
             </div>
           )}
@@ -528,7 +528,7 @@ export default function AdminVerification() {
               <h2 className="text-[13px] font-bold text-gray-500 uppercase tracking-wider mb-4">
                 Pending Review ({pending.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-10">
                 {pending.map(item => (
                   <VerificationCard
                     key={item.id}

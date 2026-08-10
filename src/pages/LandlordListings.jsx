@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Plus, Edit2, Trash2, X, Upload, MapPin,
@@ -6,7 +7,7 @@ import {
   Droplets, Dumbbell, Home, Lock, Flame, Sofa,
   Music, Leaf, Accessibility, Baby, Mountain, Zap, Search, Loader, Star,
   Coffee, BookOpen, Monitor, Sun, Camera, Bed, Bath, Bus, Phone,
-  ShieldCheck, Clock, Bike, Plug, Thermometer, Package,
+  ShieldCheck, Clock, Bike, Plug, Thermometer, Package, BarChart2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -306,6 +307,7 @@ function MapLocationPicker({ onLocationSelect, initialLat, initialLng }) {
 // MAIN LANDLORD LISTINGS PAGE
 // ============================================================
 export default function LandlordListings() {
+  const navigate = useNavigate();
   const { token, isVerified, role, logout } = useAuth();
 
   const [listings,      setListings]      = useState([]);
@@ -681,10 +683,10 @@ export default function LandlordListings() {
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3d6b35]" />
               </div>
 
-              {/* TERMS AND CONDITIONS */}
+              {/* HOUSE RULES & POLICIES */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Terms & Conditions
+                  House Rules & Policies
                   <span className="text-xs text-gray-400 font-normal ml-2">(house rules, deposit policy, pet policy, etc. — optional)</span>
                 </label>
                 <textarea name="terms_and_conditions" value={formData.terms_and_conditions} onChange={handleInputChange}
@@ -856,7 +858,7 @@ export default function LandlordListings() {
         )}
 
         {/* LISTINGS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {listings.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <p className="text-gray-500 text-lg">No listings yet</p>
@@ -934,6 +936,11 @@ export default function LandlordListings() {
                       </div>
                     )}
                   </div>
+
+                  <button onClick={() => navigate(`/landlord/listings/${listing.id}/analytics`)}
+                    className="w-full mb-2 py-2 bg-[#3d6b35]/10 text-[#3d6b35] rounded-lg text-sm font-semibold hover:bg-[#3d6b35]/20 transition flex items-center justify-center gap-1.5">
+                    <BarChart2 size={14} /> View Data & Analytics
+                  </button>
 
                   <div className="flex gap-2">
                     <button onClick={() => handleEdit(listing)}

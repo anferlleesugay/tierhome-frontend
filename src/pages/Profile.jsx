@@ -6,7 +6,7 @@ import axios from "axios";
 import {
   Camera, Mail, Lock, Phone, Eye, EyeOff,
   CheckCircle, AlertCircle, Loader, X,
-  BadgeCheck, User, Edit2,
+  BadgeCheck, User, Edit2, UserX, Clock,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -15,7 +15,7 @@ const STORAGE = `${API.replace('/api', '')}/storage/`;
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { token, user, updateUser, isVerified, role } = useAuth();
+  const { token, user, updateUser, isVerified, role, logout } = useAuth();
   const fileInputRef = useRef(null);
 
   const [profile,       setProfile]       = useState(null);
@@ -43,8 +43,16 @@ export default function Profile() {
   const [passLoading,  setPassLoading]  = useState(false);
   const [passMsg,      setPassMsg]      = useState(null);
 
+  // ✅ Account deactivation
+  const [deactivationRequest, setDeactivationRequest] = useState(null);
+  const [showDeactivateModal, setShowDeactivateModal]  = useState(false);
+  const [deactivateReason,    setDeactivateReason]     = useState("");
+  const [deactivating,        setDeactivating]         = useState(false);
+  const [deactivateError,     setDeactivateError]      = useState("");
+
   useEffect(() => {
     fetchProfile();
+    fetchDeactivationStatus();
   }, [token]);
 
   const fetchProfile = async () => {
@@ -56,6 +64,43 @@ export default function Profile() {
       setPhone(res.data.data.phone_number || "");
     } catch { }
     finally { setLoading(false); }
+  };
+
+  const fetchDeactivationStatus = async () => {
+    try {
+      const res = await axios.get(`${API}/account/deactivate/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDeactivationRequest(res.data?.data || null);
+    } catch { }
+  };
+
+  const handleSubmitDeactivation = async () => {
+    setDeactivating(true);
+    setDeactivateError("");
+    try {
+      await axios.post(`${API}/account/deactivate`,
+        { reason: deactivateReason || null },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShowDeactivateModal(false);
+      setDeactivateReason("");
+      fetchDeactivationStatus();
+    } catch (err) {
+      setDeactivateError(err.response?.data?.message || "Failed to submit request.");
+    } finally { setDeactivating(false); }
+  };
+
+  const handleCancelDeactivation = async () => {
+    if (!deactivationRequest?.id) return;
+    setDeactivating(true);
+    try {
+      await axios.delete(`${API}/account/deactivate/${deactivationRequest.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDeactivationRequest(null);
+    } catch { }
+    finally { setDeactivating(false); }
   };
 
   // ── Profile picture upload ─────────────────────────────
@@ -148,167 +193,274 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 md:pb-10">
-      <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50 pb-24 md:pb-10 w-full">
+      <div className="w-full px-6 md:px-10 py-8">
 
-        {/* ── PROFILE CARD ───────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+        {/* Two-column on desktop: profile card + status on the left, editable fields on the right */}
+        <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6 items-start">
 
-          {/* Cover */}
-          <div className="h-24 bg-gradient-to-r from-[#3d6b35] to-[#2d5a27]" />
+          {/* ── LEFT COLUMN ───────────────────────────── */}
+          <div className="space-y-4">
+            {/* PROFILE CARD */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              {/* Cover */}
+              <div className="h-24 bg-gradient-to-r from-[#3d6b35] to-[#2d5a27]" />
 
-          {/* Avatar + Info */}
-          <div className="px-6 pb-6">
-            <div className="flex items-end justify-between -mt-12 mb-4">
-              {/* Avatar */}
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-green-100 flex items-center justify-center">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-3xl font-bold text-[#3d6b35]">{initials}</span>
-                  )}
-                  {uploading && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
-                      <Loader size={20} className="text-white animate-spin" />
+              {/* Avatar + Info */}
+              <div className="px-6 pb-6">
+                <div className="flex items-end justify-between -mt-12 mb-4">
+                  {/* Avatar */}
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-green-100 flex items-center justify-center">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-3xl font-bold text-[#3d6b35]">{initials}</span>
+                      )}
+                      {uploading && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                          <Loader size={20} className="text-white animate-spin" />
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* Camera button */}
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 w-8 h-8 bg-[#3d6b35] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2d5525] transition"
+                    >
+                      <Camera size={14} />
+                    </button>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureChange} />
+                  </div>
+
+                  {/* Badges */}
+                  <div className="flex gap-2 mb-1">
+                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${roleColor}`}>
+                      {role === "landlord" ? "Property Owner" : role?.charAt(0).toUpperCase() + role?.slice(1)}
+                    </span>
+                    {isVerified && (
+                      <span className="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">
+                        <BadgeCheck size={12} /> Verified
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* Camera button */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 w-8 h-8 bg-[#3d6b35] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2d5525] transition"
-                >
-                  <Camera size={14} />
-                </button>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureChange} />
-              </div>
-
-              {/* Badges */}
-              <div className="flex gap-2 mb-1">
-                <span className={`text-xs px-3 py-1 rounded-full font-semibold ${roleColor}`}>
-                  {role === "landlord" ? "Property Owner" : role?.charAt(0).toUpperCase() + role?.slice(1)}
-                </span>
-                {isVerified && (
-                  <span className="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">
-                    <BadgeCheck size={12} /> Verified
-                  </span>
+                {/* Name */}
+                <h1 className="text-xl font-bold text-gray-900">
+                  {profile?.first_name} {profile?.middle_initial ? profile.middle_initial + ". " : ""}{profile?.last_name}
+                </h1>
+                <p className="text-sm text-gray-500">{profile?.email}</p>
+                {profile?.phone_number && (
+                  <p className="text-sm text-gray-500">{profile.phone_number}</p>
                 )}
               </div>
             </div>
 
-            {/* Name */}
-            <h1 className="text-xl font-bold text-gray-900">
-              {profile?.first_name} {profile?.middle_initial ? profile.middle_initial + ". " : ""}{profile?.last_name}
-            </h1>
-            <p className="text-sm text-gray-500">{profile?.email}</p>
-            {profile?.phone_number && (
-              <p className="text-sm text-gray-500">{profile.phone_number}</p>
+            {/* Verification status */}
+            {!isVerified && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                <p className="font-semibold text-amber-800 text-sm">Identity Not Verified</p>
+                <p className="text-xs text-amber-600 mt-0.5 mb-3">Verify your identity to unlock all features</p>
+                <button
+                  onClick={() => navigate("/verify")}
+                  className="text-xs font-bold px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition"
+                >
+                  Verify Now
+                </button>
+              </div>
+            )}
+
+            {/* ✅ ACCOUNT DEACTIVATION */}
+            {role !== "admin" && (
+              <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-4">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                      <UserX size={16} className="text-red-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">Deactivate Account</p>
+                      <p className="text-xs text-gray-400">Requires admin approval before taking effect</p>
+                    </div>
+                  </div>
+
+                  {deactivationRequest?.status === "pending" ? (
+                    <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3.5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock size={14} className="text-amber-600 shrink-0" />
+                        <p className="text-xs text-amber-700 font-medium">Your deactivation request is pending admin review.</p>
+                      </div>
+                      <button
+                        onClick={handleCancelDeactivation}
+                        disabled={deactivating}
+                        className="text-xs font-bold text-amber-700 hover:underline disabled:opacity-50"
+                      >
+                        {deactivating ? "..." : "Cancel Request"}
+                      </button>
+                    </div>
+                  ) : deactivationRequest?.status === "rejected" ? (
+                    <div className="mt-3 space-y-2">
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5">
+                        <p className="text-xs text-gray-600">
+                          Your previous request was declined{deactivationRequest.admin_note ? `: "${deactivationRequest.admin_note}"` : "."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowDeactivateModal(true)}
+                        className="text-xs font-bold text-red-500 hover:underline"
+                      >
+                        Submit a new request
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowDeactivateModal(true)}
+                      className="mt-3 text-xs font-bold px-4 py-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition"
+                    >
+                      Request Deactivation
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
           </div>
-        </div>
 
-        {/* ── EDIT SECTIONS ───────────────────────────── */}
-        <div className="space-y-4">
+          {/* ── RIGHT COLUMN — EDIT SECTIONS ─────────────── */}
+          <div className="space-y-4">
 
-          {/* Phone */}
-          <Section
-            icon={Phone}
-            title="Phone Number"
-            value={profile?.phone_number || "Not set"}
-            isActive={activeSection === "phone"}
-            onEdit={() => setActiveSection(activeSection === "phone" ? null : "phone")}
-          >
-            {phoneMsg && <Msg type={phoneMsg.type} text={phoneMsg.text} />}
-            <form onSubmit={handleUpdatePhone} className="space-y-3 mt-3">
-              <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="09XXXXXXXXX"
-                maxLength={11}
-                className={inputClass}
-              />
-              <div className="flex gap-2">
-                <button type="submit" disabled={phoneLoading} className={btnClass}>
-                  {phoneLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
-                </button>
-                <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
-              </div>
-            </form>
-          </Section>
+            {/* Phone */}
+            <Section
+              icon={Phone}
+              title="Phone Number"
+              value={profile?.phone_number || "Not set"}
+              isActive={activeSection === "phone"}
+              onEdit={() => setActiveSection(activeSection === "phone" ? null : "phone")}
+            >
+              {phoneMsg && <Msg type={phoneMsg.type} text={phoneMsg.text} />}
+              <form onSubmit={handleUpdatePhone} className="space-y-3 mt-3">
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="09XXXXXXXXX"
+                  maxLength={11}
+                  className={inputClass}
+                />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={phoneLoading} className={btnClass}>
+                    {phoneLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
 
-          {/* Email */}
-          <Section
-            icon={Mail}
-            title="Email Address"
-            value={profile?.email}
-            isActive={activeSection === "email"}
-            onEdit={() => setActiveSection(activeSection === "email" ? null : "email")}
-          >
-            {emailMsg && <Msg type={emailMsg.type} text={emailMsg.text} />}
-            <form onSubmit={handleUpdateEmail} className="space-y-3 mt-3">
-              <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email address" className={inputClass} required />
-              <input type="password" value={emailPass} onChange={(e) => setEmailPass(e.target.value)} placeholder="Current password to confirm" className={inputClass} required />
-              <div className="flex gap-2">
-                <button type="submit" disabled={emailLoading} className={btnClass}>
-                  {emailLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
-                </button>
-                <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
-              </div>
-            </form>
-          </Section>
+            {/* Email */}
+            <Section
+              icon={Mail}
+              title="Email Address"
+              value={profile?.email}
+              isActive={activeSection === "email"}
+              onEdit={() => setActiveSection(activeSection === "email" ? null : "email")}
+            >
+              {emailMsg && <Msg type={emailMsg.type} text={emailMsg.text} />}
+              <form onSubmit={handleUpdateEmail} className="space-y-3 mt-3">
+                <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email address" className={inputClass} required />
+                <input type="password" value={emailPass} onChange={(e) => setEmailPass(e.target.value)} placeholder="Current password to confirm" className={inputClass} required />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={emailLoading} className={btnClass}>
+                    {emailLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
 
-          {/* Password */}
-          <Section
-            icon={Lock}
-            title="Password"
-            value="••••••••"
-            isActive={activeSection === "password"}
-            onEdit={() => setActiveSection(activeSection === "password" ? null : "password")}
-          >
-            {passMsg && <Msg type={passMsg.type} text={passMsg.text} />}
-            <form onSubmit={handleUpdatePassword} className="space-y-3 mt-3">
-              <div className="relative">
-                <input type={showCurrent ? "text" : "password"} value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} placeholder="Current password" className={inputClass} required />
-                <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-              <div className="relative">
-                <input type={showNew ? "text" : "password"} value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="New password (min 8 chars)" className={inputClass} required />
-                <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-              <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Confirm new password" className={inputClass} required />
-              <div className="flex gap-2">
-                <button type="submit" disabled={passLoading} className={btnClass}>
-                  {passLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
-                </button>
-                <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
-              </div>
-            </form>
-          </Section>
-
-          {/* Verification status */}
-          {!isVerified && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-amber-800 text-sm">Identity Not Verified</p>
-                <p className="text-xs text-amber-600 mt-0.5">Verify your identity to unlock all features</p>
-              </div>
-              <button
-                onClick={() => navigate("/verify")}
-                className="text-xs font-bold px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition"
-              >
-                Verify Now
-              </button>
-            </div>
-          )}
+            {/* Password */}
+            <Section
+              icon={Lock}
+              title="Password"
+              value="••••••••"
+              isActive={activeSection === "password"}
+              onEdit={() => setActiveSection(activeSection === "password" ? null : "password")}
+            >
+              {passMsg && <Msg type={passMsg.type} text={passMsg.text} />}
+              <form onSubmit={handleUpdatePassword} className="space-y-3 mt-3">
+                <div className="relative">
+                  <input type={showCurrent ? "text" : "password"} value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} placeholder="Current password" className={inputClass} required />
+                  <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input type={showNew ? "text" : "password"} value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="New password (min 8 chars)" className={inputClass} required />
+                  <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Confirm new password" className={inputClass} required />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={passLoading} className={btnClass}>
+                    {passLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
+          </div>
         </div>
       </div>
+
+      {/* ✅ DEACTIVATION CONFIRMATION MODAL */}
+      {showDeactivateModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
+          onClick={() => { if (!deactivating) setShowDeactivateModal(false); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-bold text-gray-900 text-lg">Request Deactivation</h2>
+              <button onClick={() => setShowDeactivateModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+                <X size={18} className="text-gray-600" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5">
+              <p className="text-sm text-gray-600 mb-4">
+                This will submit a request to deactivate your account. An administrator will review it before your account is actually deactivated — you'll be notified either way.
+              </p>
+
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
+                Reason <span className="text-gray-400 font-normal normal-case">(optional)</span>
+              </label>
+              <textarea value={deactivateReason} onChange={(e) => setDeactivateReason(e.target.value)}
+                placeholder="Let us know why you're leaving..."
+                rows={3}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition resize-none mb-4" />
+
+              {deactivateError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-2.5 rounded-xl mb-4">
+                  <AlertCircle size={13} className="shrink-0" /> {deactivateError}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button onClick={() => setShowDeactivateModal(false)}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                  Cancel
+                </button>
+                <button onClick={handleSubmitDeactivation} disabled={deactivating}
+                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                  {deactivating ? <Loader size={14} className="animate-spin" /> : "Submit Request"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

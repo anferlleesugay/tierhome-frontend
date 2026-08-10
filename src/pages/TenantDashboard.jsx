@@ -21,7 +21,7 @@ function StatCard({ icon: Icon, label, value, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-gray-100 hover:shadow-md transition-all text-left w-full"
+      className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-gray-100 hover:shadow-md transition-all text-left w-full h-full"
     >
       <div
         className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
@@ -65,7 +65,7 @@ function VerificationBanner({ status, navigate }) {
   const c = config[status] || config.unverified;
 
   return (
-    <div className={`flex items-center gap-3 p-4 rounded-2xl border ${c.bg} mb-4`}>
+    <div className={`flex items-center gap-3 p-4 rounded-2xl border ${c.bg}`}>
       {c.icon}
       <p className="text-sm text-gray-700 flex-1">{c.text}</p>
       {c.btn && (
@@ -124,83 +124,60 @@ export default function TenantDashboard() {
     .filter(Boolean).join("").toUpperCase() || "T";
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] pb-28">
+    <div className="min-h-screen bg-[#f5f7f5] pb-28 w-full">
       {/* HEADER */}
-      <div className="bg-white border-b border-gray-100 px-4 pt-6 pb-5">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-4">
-            {/* Avatar */}
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[#3d6b35]/10 flex items-center justify-center shrink-0">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+      <div className="bg-white border-b border-gray-100 px-6 md:px-10 pt-6 pb-5">
+        <div className="w-full flex items-center gap-4">
+          {/* Avatar */}
+          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[#3d6b35]/10 flex items-center justify-center shrink-0">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xl font-bold text-[#3d6b35]">{initials}</span>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-[12px] text-gray-400 font-medium">Welcome back,</p>
+            <h1 className="text-[20px] font-bold text-gray-900 truncate">
+              {user?.first_name} {user?.last_name}
+            </h1>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {isVerified ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
+                  <BadgeCheck size={13} /> Verified Tenant
+                </span>
               ) : (
-                <span className="text-xl font-bold text-[#3d6b35]">{initials}</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600">
+                  <Clock size={13} /> {verStatus === "pending" ? "Pending Verification" : "Unverified"}
+                </span>
               )}
             </div>
-
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] text-gray-400 font-medium">Welcome back,</p>
-              <h1 className="text-[20px] font-bold text-gray-900 truncate">
-                {user?.first_name} {user?.last_name}
-              </h1>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                {isVerified ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
-                    <BadgeCheck size={13} /> Verified Tenant
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600">
-                    <Clock size={13} /> {verStatus === "pending" ? "Pending Verification" : "Unverified"}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="p-2.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition"
-              title="Logout"
-            >
-              <LogOut size={18} />
-            </button>
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="p-2.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition shrink-0"
+            title="Logout"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 mt-5 space-y-4">
-        {/* VERIFICATION BANNER */}
+      <div className="w-full px-6 md:px-10 mt-6 space-y-4">
+        {/* VERIFICATION BANNER — full width */}
         <VerificationBanner status={verStatus} navigate={navigate} />
 
-        {/* ACCOUNT INFO */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Account Info</p>
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-3">
-              <User size={15} className="text-gray-400 shrink-0" />
-              <span className="text-[13px] text-gray-600">{user?.email}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Home size={15} className="text-gray-400 shrink-0" />
-              <span className="text-[13px] text-gray-600 capitalize">Role: {user?.role}</span>
-            </div>
-            {user?.phone_number && (
-              <div className="flex items-center gap-3">
-                <MapPin size={15} className="text-gray-400 shrink-0" />
-                <span className="text-[13px] text-gray-600">{user.phone_number}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* STATS GRID */}
+        {/* STATS GRID — horizontal on tablet+ instead of stacked */}
         {loading ? (
-          <div className="space-y-3">
-            {[...Array(4)].map((_, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[...Array(3)].map((_, i) => (
               <div key={i} className="h-[68px] bg-white rounded-2xl animate-pulse border border-gray-100" />
             ))}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <StatCard
               icon={Heart}
               label="Saved Listings"
@@ -225,40 +202,75 @@ export default function TenantDashboard() {
           </div>
         )}
 
-        {/* RANKING SUMMARY */}
-        {stats.ranking && (
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
-                Last Affordability Ranking
-              </p>
+        {/* SECOND ROW — Account Info + Ranking, side by side on desktop */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {/* ACCOUNT INFO */}
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm h-full">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Account Info</p>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3">
+                <User size={15} className="text-gray-400 shrink-0" />
+                <span className="text-[13px] text-gray-600">{user?.email}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Home size={15} className="text-gray-400 shrink-0" />
+                <span className="text-[13px] text-gray-600 capitalize">Role: {user?.role}</span>
+              </div>
+              {user?.phone_number && (
+                <div className="flex items-center gap-3">
+                  <MapPin size={15} className="text-gray-400 shrink-0" />
+                  <span className="text-[13px] text-gray-600">{user.phone_number}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RANKING SUMMARY */}
+          {stats.ranking ? (
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm h-full">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                  Last Affordability Ranking
+                </p>
+                <button
+                  onClick={() => navigate("/tenant/ranking")}
+                  className="text-[11px] font-semibold text-[#3d6b35] flex items-center gap-1"
+                >
+                  Recalculate <ChevronRight size={12} />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Gross Income", val: stats.ranking.gross_income },
+                  { label: "Disposable", val: stats.ranking.disposable_income },
+                  { label: "Max Rent (30%)", val: stats.ranking.recommended_max_rent },
+                  { label: "Savings", val: stats.ranking.available_savings },
+                ].map(({ label, val }) => (
+                  <div key={label} className="bg-[#f5f7f5] rounded-xl p-3">
+                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">{label}</p>
+                    <p className="text-[15px] font-bold text-gray-800">{formatPeso(val)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm h-full flex flex-col items-center justify-center text-center">
+              <Calculator size={24} className="text-gray-300 mb-2" />
+              <p className="text-[12px] text-gray-400 mb-2">No affordability ranking yet.</p>
               <button
                 onClick={() => navigate("/tenant/ranking")}
                 className="text-[11px] font-semibold text-[#3d6b35] flex items-center gap-1"
               >
-                Recalculate <ChevronRight size={12} />
+                Calculate now <ChevronRight size={12} />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Gross Income", val: stats.ranking.gross_income },
-                { label: "Disposable", val: stats.ranking.disposable_income },
-                { label: "Max Rent (30%)", val: stats.ranking.recommended_max_rent },
-                { label: "Savings", val: stats.ranking.available_savings },
-              ].map(({ label, val }) => (
-                <div key={label} className="bg-[#f5f7f5] rounded-xl p-3">
-                  <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">{label}</p>
-                  <p className="text-[15px] font-bold text-gray-800">{formatPeso(val)}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* QUICK ACTIONS */}
+        {/* QUICK ACTIONS — 4 across on desktop */}
         <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
           <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Quick Actions</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
               { label: "Browse Listings", icon: Home, path: "/browse", color: "#3d6b35" },
               { label: "Affordability Rank", icon: Calculator, path: "/tenant/ranking", color: "#7c3aed" },

@@ -1,9 +1,9 @@
 // FILE: src/pages/Login.jsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import { Mail, Lock, Eye, EyeOff, AlertCircle, X } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, AlertCircle, X, UserX, CheckCircle, Loader } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/logo.png";
 
@@ -21,6 +21,19 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ✅ Deactivation popup — triggered by a failed login OR by the global
+  // interceptor redirecting a mid-session user here after a 403.
+  const [showDeactivated, setShowDeactivated] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivationMsg, setReactivationMsg] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("deactivated") === "1") {
+      setShowDeactivated(true);
+    }
+  }, [location.search]);
+
   const handleClose = () => {
     navigate(background?.pathname || "/");
   };
@@ -29,6 +42,8 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setShowDeactivated(false);
+    setReactivationMsg(null);
     try {
       const res = await axios.post(`${API}/auth/login`, {
         email,
@@ -39,10 +54,10 @@ export default function Login() {
       if (!token || !user) throw new Error("Invalid response");
       login(token, user);
       if (user.role === "admin") {
-        navigate("/admin/dashboard");
+        navigate("/admin/analytics");
       } else if (user.role === "landlord") {
         user.verification_status === "verified"
-          ? navigate("/landlord/dashboard")
+          ? navigate("/landlord/analytics")
           : navigate("/verify");
       } else {
         user.verification_status === "verified"
@@ -51,9 +66,28 @@ export default function Login() {
       }
     } catch (err) {
       console.error(err);
-      setError("Invalid email or password");
+      if (err.response?.data?.deactivated) {
+        setShowDeactivated(true);
+      } else {
+        const backendMessage = err.response?.data?.message;
+        setError(backendMessage || "Invalid email or password");
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRequestReactivation = async () => {
+    if (!email || !password) return;
+    setReactivating(true);
+    setReactivationMsg(null);
+    try {
+      const res = await axios.post(`${API}/auth/request-reactivation`, { email, password });
+      setReactivationMsg({ type: "success", text: res.data?.message || "Request sent to our admin team." });
+    } catch (err) {
+      setReactivationMsg({ type: "error", text: err.response?.data?.message || "Failed to send request." });
+    } finally {
+      setReactivating(false);
     }
   };
 
@@ -84,8 +118,49 @@ export default function Login() {
         Sign in to your TierHome account
       </p>
 
+      {/* DEACTIVATED ACCOUNT PANEL */}
+      {showDeactivated && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-2.5">
+            <UserX size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-red-700">It looks like your account is deactivated</p>
+              <p className="text-xs text-red-600 mt-1">
+                Please contact support if you believe this is an error, or request reactivation below.
+              </p>
+
+              {reactivationMsg ? (
+                <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg mt-3 ${
+                  reactivationMsg.type === "success"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}>
+                  {reactivationMsg.type === "success" ? <CheckCircle size={13} /> : <AlertCircle size={13} />}
+                  {reactivationMsg.text}
+                </div>
+              ) : (
+                <>
+                  {(!email || !password) && (
+                    <p className="text-[11px] text-red-500 mt-2">Enter your email and password above, then tap the button below.</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleRequestReactivation}
+                    disabled={reactivating || !email || !password}
+                    className="mt-2.5 text-xs font-bold px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {reactivating ? <Loader size={13} className="animate-spin" /> : null}
+                    {reactivating ? "Sending..." : "Request Reactivation"}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ERROR */}
-      {error && (
+      {error && !showDeactivated && (
         <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
           <AlertCircle size={16} className="shrink-0" />
           {error}

@@ -214,7 +214,7 @@ export default function Messages() {
             <div className="flex flex-col items-center justify-center py-16 text-gray-400 px-4">
               <MessageCircle size={40} className="mb-3 opacity-30" />
               <p className="font-medium text-sm">No conversations yet</p>
-              <p className="text-xs mt-1 text-center">Click "Message Landlord" from a listing</p>
+              <p className="text-xs mt-1 text-center">Click "Message Property Owner" from a listing</p>
             </div>
           ) : filtered.map((conv) => {
             const other    = getOther(conv);

@@ -2,7 +2,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home, Search, Heart, MessageCircle, User,
-  LayoutDashboard, Shield, Building, MapPin, Calendar,
+  LayoutDashboard, Shield, Building, MapPin, Calendar, BarChart2, UserCog,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -40,16 +40,16 @@ export default function MobileBottomNav() {
       { name: "Listings",     path: "/landlord/listings",     icon: Building,     auth: false },
       { name: "Reservations", path: "/landlord/reservations", icon: Calendar,     auth: false },
       { name: "Messages",     path: "/landlord/messages",     icon: MessageCircle,auth: false },
-      { name: "Dashboard",    path: "/landlord/dashboard",    icon: LayoutDashboard,auth: false },
+      { name: "Analytics",    path: "/landlord/analytics",    icon: BarChart2,    auth: false },
       { name: "Profile",      path: "/profile",               icon: User,         auth: false },
     ];
 
     if (role === "admin") return [
-      { name: "Dashboard", path: "/admin/dashboard",    icon: Shield,         auth: false },
+      { name: "Users",     path: "/admin/users",        icon: UserCog,        auth: false },
       { name: "Verify",    path: "/admin/verification", icon: User,           auth: false },
       { name: "Listings",  path: "/admin/listings",     icon: Building,       auth: false },
       { name: "Amenities", path: "/admin/amenities",    icon: LayoutDashboard,auth: false },
-      { name: "Analytics", path: "/admin/analytics",    icon: LayoutDashboard,auth: false },
+      { name: "Analytics", path: "/admin/analytics",    icon: Shield,         auth: false },
     ];
 
     return [
@@ -69,8 +69,7 @@ export default function MobileBottomNav() {
           const Icon = item.icon;
           const isActive =
             location.pathname === item.path ||
-            (item.name === "Profile"  && location.pathname === "/profile") ||
-            (item.name === "Dashboard"&& location.pathname.includes("dashboard"));
+            (item.name === "Profile"  && location.pathname === "/profile");
 
           return (
             <button key={item.name} onClick={() => handleNav(item.path, item.auth)}

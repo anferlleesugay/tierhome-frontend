@@ -14,7 +14,7 @@ export default function EulaModal({ open, onClose, modalType }) {
             {
               heading: "1. Introduction",
               content:
-                "Welcome to TierHome. By creating an account and using this platform, you agree to comply with all platform policies, guidelines, and applicable laws. TierHome is an online housing platform that connects tenants and landlords in Angeles City.",
+                "Welcome to TierHome. By creating an account and using this platform, you agree to comply with all platform policies, guidelines, and applicable laws. TierHome is an online housing platform that connects tenants and property owners in Angeles City.",
             },
             {
               heading: "2. User Responsibilities",
@@ -24,7 +24,7 @@ export default function EulaModal({ open, onClose, modalType }) {
             {
               heading: "3. Listings & Transactions",
               content:
-                "TierHome acts as a platform connecting tenants and landlords. We are not responsible for agreements, disputes, or transactions made between users. Both parties are solely responsible for verifying property details, pricing, and lease terms. Users should always conduct due diligence before committing to any housing agreement.",
+                "TierHome acts as a platform connecting tenants and property owners. We are not responsible for agreements, disputes, or transactions made between users. Both parties are solely responsible for verifying property details, pricing, and lease terms. Users should always conduct due diligence before committing to any housing agreement.",
             },
             {
               heading: "4. Identity Verification",
@@ -66,7 +66,7 @@ export default function EulaModal({ open, onClose, modalType }) {
             {
               heading: "2. How We Use Your Information",
               content:
-                "Your personal information is used to create and maintain your account, verify your identity, facilitate transactions between tenants and landlords, improve our platform, and communicate with you about updates or important notices.",
+                "Your personal information is used to create and maintain your account, verify your identity, facilitate transactions between tenants and property owners, improve our platform, and communicate with you about updates or important notices.",
             },
             {
               heading: "3. Data Security",

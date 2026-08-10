@@ -3,8 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Menu, Search, LogOut, BadgeCheck, AlertCircle, ChevronDown,
-  LayoutDashboard, Building, Calendar, MessageCircle,
-  Shield, ClipboardList, BarChart2, CheckSquare, Star,
+  Building, Calendar, MessageCircle,
+  ClipboardList, BarChart2, CheckSquare, Star,
 } from "lucide-react";
 
 import logo from "../../assets/logo.png";
@@ -106,19 +106,17 @@ export default function Navbar() {
   ].join(" · ");
 
   const landlordLinks = [
-    { to: "/landlord/dashboard",    icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/landlord/analytics",    icon: BarChart2,       label: "Analytics" },
     { to: "/landlord/listings",     icon: Building,        label: "Listings" },
     { to: "/landlord/reservations", icon: Calendar,        label: "Reservations" },
     { to: "/landlord/messages",     icon: MessageCircle,   label: "Messages" },
-    { to: "/landlord/analytics", icon: BarChart2, label: "Analytics" },
   ];
 
   const adminLinks = [
-    { to: "/admin/dashboard",    icon: Shield,        label: "Dashboard" },
+    { to: "/admin/analytics",    icon: BarChart2,     label: "Analytics" },
     { to: "/admin/verification", icon: CheckSquare,   label: "Verifications" },
     { to: "/admin/listings",     icon: ClipboardList, label: "Listings" },
     { to: "/admin/amenities",    icon: Star,          label: "Amenities" },
-    { to: "/admin/analytics",    icon: BarChart2,     label: "Analytics" },
   ];
 
   const isLandlord = role === "landlord";
@@ -248,6 +246,23 @@ export default function Navbar() {
                         <DropdownItem label="Messages"              to="/tenant/messages"     onClose={() => setOpenDropdown(false)} />
                         <DropdownItem label="Affordability Ranking" to="/tenant/ranking"      onClose={() => setOpenDropdown(false)} />
                         {!isVerified && <DropdownItem label="Verify Identity" to="/verify"   onClose={() => setOpenDropdown(false)} />}
+                      </div>
+                    )}
+
+                    {/* Landlord links — not shown in the top bar */}
+                    {isLandlord && !isVerified && (
+                      <div className="py-1">
+                        <DropdownItem label="Verify Identity" to="/verify" onClose={() => setOpenDropdown(false)} />
+                      </div>
+                    )}
+
+                    {/* Admin links — pages not shown in the top bar */}
+                    {isAdmin && (
+                      <div className="py-1">
+                        <DropdownItem label="Property Owners"       to="/admin/landlords"             onClose={() => setOpenDropdown(false)} />
+                        <DropdownItem label="Listings Summary"      to="/admin/listings-summary"      onClose={() => setOpenDropdown(false)} />
+                        <DropdownItem label="User Management"       to="/admin/users"                 onClose={() => setOpenDropdown(false)} />
+                        <DropdownItem label="Deactivation Requests" to="/admin/deactivation-requests" onClose={() => setOpenDropdown(false)} />
                       </div>
                     )}
 

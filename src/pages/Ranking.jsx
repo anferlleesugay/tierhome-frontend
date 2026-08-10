@@ -543,7 +543,7 @@ export default function Ranking() {
                   About Move-in Costs (RA 9653)
                 </p>
                 <p className="text-[12px] text-amber-700">
-                  Landlords may require up to 2 months deposit plus
+                  Property owners may require up to 2 months deposit plus
                   1 month advance payment. Estimated move-in cost =
                   Monthly Rent × 3.
                 </p>

@@ -27,18 +27,22 @@ import Messages from "./pages/Messages";
 import Reservations from "./pages/Reservations";
 
 // Landlord
-import LandlordDashboard from "./pages/LandlordDashboard";
 import LandlordListings from "./pages/LandlordListings";
 import LandlordReservations from "./pages/LandlordReservations";
 import LandlordMessages from "./pages/LandlordMessages";
 import LandlordAnalytics from "./pages/LandlordAnalytics";
+import ListingAnalytics from "./pages/ListingAnalytics";
+import AdminListingsSummary from "./pages/AdminListingsSummary";
 
 // Admin
-import AdminDashboard from "./pages/AdminDashboard";
 import AdminVerification from "./pages/AdminVerification";
 import AdminListings from "./pages/AdminListings";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminAmenityRequests from "./pages/AdminAmenityRequests";
+import AdminLandlords from "./pages/AdminLandlords";
+import AdminLandlordDetail from "./pages/AdminLandlordDetail";
+import AdminDeactivationRequests from "./pages/AdminDeactivationRequests";
+import AdminUserManagement from "./pages/AdminUserManagement";
 
 function AdminOnly({ children }) {
   const { isLoggedIn, role, loading } = useAuth();
@@ -83,26 +87,27 @@ function App() {
 
   const redirectHome = () => {
     if (!isLoggedIn) return <Welcome />;
-    if (role === "landlord") return <Navigate to="/landlord/dashboard" replace />;
-    if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
+    if (role === "landlord") return <Navigate to="/landlord/analytics" replace />;
+    if (role === "admin") return <Navigate to="/admin/analytics" replace />;
     return <Navigate to="/browse" replace />;
   };
 
   const protectBrowse = () => {
-    if (isLoggedIn && role === "landlord") return <Navigate to="/landlord/dashboard" replace />;
-    if (isLoggedIn && role === "admin") return <Navigate to="/admin/dashboard" replace />;
+    if (isLoggedIn && role === "landlord") return <Navigate to="/landlord/analytics" replace />;
+    if (isLoggedIn && role === "admin") return <Navigate to="/admin/analytics" replace />;
     return <Browse />;
   };
 
   const protectListing = () => {
-    if (role === "landlord") return <Navigate to="/landlord/dashboard" replace />;
-    if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
+    const isPreview = new URLSearchParams(location.search).get("preview") === "1";
+    if (!isPreview && role === "landlord") return <Navigate to="/landlord/analytics" replace />;
+    if (!isPreview && role === "admin") return <Navigate to="/admin/analytics" replace />;
     return <ListingDetail />;
   };
 
   const protectVerify = () => {
     if (role === "landlord") return <LandlordVerifyOnly><Verify /></LandlordVerifyOnly>;
-    if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
+    if (role === "admin") return <Navigate to="/admin/analytics" replace />;
     return <Verify />;
   };
 
@@ -144,9 +149,8 @@ function App() {
           <Route path="/tenant/reservations" element={<TenantOnly><Reservations /></TenantOnly>} />
 
           {/* LANDLORD ROUTES — verified landlords only */}
-          <Route path="/landlord/dashboard" element={
-            <LandlordVerifyOnly><LandlordDashboard /></LandlordVerifyOnly>
-          } />
+          {/* "Dashboard" now folds into Analytics — old links/bookmarks still work via redirect */}
+          <Route path="/landlord/dashboard" element={<Navigate to="/landlord/analytics" replace />} />
           <Route path="/landlord/listings" element={
             <LandlordOnly><LandlordListings /></LandlordOnly>
           } />
@@ -157,14 +161,22 @@ function App() {
             <LandlordOnly><LandlordMessages /></LandlordOnly>
           } />
           <Route path="/landlord/analytics" element={<LandlordVerifyOnly><LandlordAnalytics /></LandlordVerifyOnly>} />
+          <Route path="/landlord/listings/:id/analytics" element={<LandlordOnly><ListingAnalytics /></LandlordOnly>} />
           
 
           {/* ADMIN ROUTES */}
-          <Route path="/admin/dashboard"    element={<AdminOnly><AdminDashboard /></AdminOnly>} />
+          {/* "Dashboard" now folds into Analytics — old links/bookmarks still work via redirect */}
+          <Route path="/admin/dashboard"    element={<Navigate to="/admin/analytics" replace />} />
           <Route path="/admin/verification" element={<AdminOnly><AdminVerification /></AdminOnly>} />
           <Route path="/admin/listings"     element={<AdminOnly><AdminListings /></AdminOnly>} />
           <Route path="/admin/analytics"    element={<AdminOnly><AdminAnalytics /></AdminOnly>} />
           <Route path="/admin/amenities"    element={<AdminOnly><AdminAmenityRequests /></AdminOnly>} />
+          <Route path="/admin/landlords"      element={<AdminOnly><AdminLandlords /></AdminOnly>} />
+          <Route path="/admin/landlords/:id"  element={<AdminOnly><AdminLandlordDetail /></AdminOnly>} />
+          <Route path="/admin/listings/:id/analytics" element={<AdminOnly><ListingAnalytics /></AdminOnly>} />
+          <Route path="/admin/listings-summary" element={<AdminOnly><AdminListingsSummary /></AdminOnly>} />
+          <Route path="/admin/deactivation-requests" element={<AdminOnly><AdminDeactivationRequests /></AdminOnly>} />
+          <Route path="/admin/users"          element={<AdminOnly><AdminUserManagement /></AdminOnly>} />
         </Route>
 
         {/* PUBLIC ROUTES */}

@@ -13,7 +13,7 @@ const API = import.meta.env.VITE_API_URL;
 
 export default function Verify() {
   const navigate = useNavigate();
-  const { token, isLoggedIn, role, refreshUser } = useAuth();
+  const { token, isLoggedIn, role, user, refreshUser } = useAuth();
 
   const [status,          setStatus]          = useState(null);
   const [pageLoading,     setPageLoading]     = useState(true);
@@ -40,6 +40,15 @@ export default function Verify() {
   useEffect(() => {
     if (!isLoggedIn) navigate("/login");
   }, [isLoggedIn, navigate]);
+
+  // ✅ AuthContext polls verification_status in the background every 15s.
+  // If approval lands while the user is sitting on this exact page,
+  // catch it here instead of requiring a manual refresh.
+  useEffect(() => {
+    if (user?.verification_status === "verified" && status !== "verified") {
+      setStatus("verified");
+    }
+  }, [user?.verification_status]);
 
   useEffect(() => {
     return () => {

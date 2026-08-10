@@ -210,8 +210,8 @@ export default function AdminListings() {
     <div className="min-h-screen bg-gray-50 pb-28">
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 md:px-10 py-5 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+      <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-5 sticky top-0 z-20">
+        <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
               <Building size={20} className="text-[#3d6b35]" />
@@ -235,9 +235,9 @@ export default function AdminListings() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 md:px-10 mt-6">
+      <div className="w-full px-6 md:px-10 mt-6">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="h-96 bg-white rounded-2xl animate-pulse border border-gray-100" />
             ))}
@@ -249,7 +249,7 @@ export default function AdminListings() {
             <p className="text-sm text-gray-400">No listings pending review.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {listings.map((listing) => (
               <ListingCard key={listing.id} listing={listing}
                 onApprove={handleApprove}

@@ -264,7 +264,7 @@ const handlePay = async () => {
       </div>
 
       {/* ================= DESKTOP HEADER ================= */}
-      <div className="hidden md:block max-w-6xl mx-auto px-6 pt-6">
+      <div className="hidden md:block max-w-7xl mx-auto px-6 pt-6">
 
         <h1 className="text-3xl font-semibold text-gray-900">
           {listing.title}
@@ -303,7 +303,7 @@ const handlePay = async () => {
       </div>
 
       {/* ================= CONTENT ================= */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 mt-6 grid lg:grid-cols-3 gap-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-6 grid lg:grid-cols-3 gap-10">
 
         {/* Mobile title + address */}
         <div className="lg:hidden lg:col-span-2 mb-2">
@@ -372,7 +372,7 @@ const handlePay = async () => {
 
           {listing.terms_and_conditions && (
             <div className="border-b pb-6">
-              <h3 className="font-semibold mb-2">Terms & Conditions</h3>
+              <h3 className="font-semibold mb-2">House Rules & Policies</h3>
               <p className="text-sm text-gray-600 whitespace-pre-line">
                 {listing.terms_and_conditions}
               </p>
@@ -501,7 +501,7 @@ const handlePay = async () => {
 
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-bold text-gray-900 text-lg">
-                {reserveStep === "terms" ? "Terms & Conditions" :
+                {reserveStep === "terms" ? "House Rules & Policies" :
                  reserveStep === "payment" ? "Reservation Fee Payment" :
                  reserveStep === "success" ? "Request Sent!" : "Reserve Property"}
               </h2>
@@ -513,13 +513,13 @@ const handlePay = async () => {
 
             <div className="px-6 py-5">
 
-              {/* ── STEP 1: Terms & Conditions ── */}
+              {/* ── STEP 1: House Rules & Policies ── */}
               {reserveStep === "terms" && (
                 <div>
                   {listing.terms_and_conditions ? (
                     <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-xl max-h-64 overflow-y-auto">
                       <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                        Property Owner's Terms & Conditions
+                        Property Owner's House Rules & Policies
                       </p>
                       <p className="text-sm text-gray-600 whitespace-pre-line">
                         {listing.terms_and_conditions}

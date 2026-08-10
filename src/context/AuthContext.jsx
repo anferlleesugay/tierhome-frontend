@@ -59,6 +59,32 @@ export function AuthProvider({ children }) {
     setSavedIds([]);
   }
 
+  // ================= GLOBAL DEACTIVATION DETECTION =================
+  // Catches the `deactivated: true` flag from ANY API response (not just login) —
+  // this is what makes deactivation take effect immediately, without requiring
+  // the user to manually log out and log back in.
+  useEffect(() => {
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 403 && error.response?.data?.deactivated) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setToken(null);
+          setUser(null);
+          setSavedIds([]);
+
+          if (!window.location.pathname.startsWith("/login")) {
+            window.location.href = "/login?deactivated=1";
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axios.interceptors.response.eject(interceptorId);
+  }, []);
+
   // ================= UPDATE USER (profile picture etc) =================
   function updateUser(updatedUser) {
     const merged = { ...user, ...updatedUser };
@@ -82,6 +108,16 @@ const refreshUser = async () => {
     console.error("Failed to refresh user:", err);
   }
 };
+
+  // ================= POLL FOR VERIFICATION STATUS CHANGES =================
+  // Keeps verification_status in sync app-wide without requiring a logout/login.
+  // Only polls while not yet verified — stops automatically once approved,
+  // since there's nothing further to catch after that.
+  useEffect(() => {
+    if (!token || !user || user.verification_status === "verified") return;
+    const interval = setInterval(refreshUser, 15000);
+    return () => clearInterval(interval);
+  }, [token, user?.verification_status]);
 
   // ================= FETCH SAVED =================
   const fetchSaved = async () => {

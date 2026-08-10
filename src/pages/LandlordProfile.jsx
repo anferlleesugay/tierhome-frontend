@@ -1,9 +1,13 @@
 // FILE: src/pages/LandlordProfile.jsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { MapPin, BadgeCheck, Building, ArrowLeft, Loader, Camera } from "lucide-react";
+import {
+  MapPin, BadgeCheck, Building, ArrowLeft, Loader, Camera,
+  Mail, Lock, Phone, Eye, EyeOff, CheckCircle, AlertCircle,
+  X, Edit2, UserX, Clock,
+} from "lucide-react";
 import ListingCard from "../components/listings/ListingCard";
 import { useAuth } from "../context/AuthContext";
 
@@ -13,13 +17,43 @@ const STORAGE = `${API.replace('/api', '')}/storage/`;
 export default function LandlordProfile() {
   const { id }     = useParams();
   const navigate   = useNavigate();
-  const { user, token, updateUser } = useAuth();
+  const { user, token, role, isVerified, updateUser } = useAuth();
+  const fileInputRef = useRef(null);
+
   const [profile,  setProfile]  = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const isOwner = user?.id === parseInt(id);
+
+  // ── Self-view account settings (only fetched/used when isOwner) ──
+  const [account,       setAccount]       = useState(null);
+  const [activeSection, setActiveSection] = useState(null); // "phone" | "email" | "password"
+
+  const [phone,        setPhone]        = useState("");
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [phoneMsg,     setPhoneMsg]     = useState(null);
+
+  const [newEmail,     setNewEmail]     = useState("");
+  const [emailPass,    setEmailPass]    = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailMsg,     setEmailMsg]     = useState(null);
+
+  const [currentPass,  setCurrentPass]  = useState("");
+  const [newPass,      setNewPass]      = useState("");
+  const [confirmPass,  setConfirmPass]  = useState("");
+  const [showCurrent,  setShowCurrent]  = useState(false);
+  const [showNew,      setShowNew]      = useState(false);
+  const [passLoading,  setPassLoading]  = useState(false);
+  const [passMsg,      setPassMsg]      = useState(null);
+
+  // Account deactivation
+  const [deactivationRequest, setDeactivationRequest] = useState(null);
+  const [showDeactivateModal, setShowDeactivateModal]  = useState(false);
+  const [deactivateReason,    setDeactivateReason]     = useState("");
+  const [deactivating,        setDeactivating]         = useState(false);
+  const [deactivateError,     setDeactivateError]      = useState("");
 
   useEffect(() => {
     axios.get(`${API}/profile/${id}`)
@@ -28,6 +62,60 @@ export default function LandlordProfile() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    if (!isOwner || !token) return;
+    fetchAccount();
+    fetchDeactivationStatus();
+  }, [isOwner, token]);
+
+  const fetchAccount = async () => {
+    try {
+      const res = await axios.get(`${API}/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAccount(res.data.data);
+      setPhone(res.data.data.phone_number || "");
+    } catch { }
+  };
+
+  const fetchDeactivationStatus = async () => {
+    try {
+      const res = await axios.get(`${API}/account/deactivate/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDeactivationRequest(res.data?.data || null);
+    } catch { }
+  };
+
+  const handleSubmitDeactivation = async () => {
+    setDeactivating(true);
+    setDeactivateError("");
+    try {
+      await axios.post(`${API}/account/deactivate`,
+        { reason: deactivateReason || null },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShowDeactivateModal(false);
+      setDeactivateReason("");
+      fetchDeactivationStatus();
+    } catch (err) {
+      setDeactivateError(err.response?.data?.message || "Failed to submit request.");
+    } finally { setDeactivating(false); }
+  };
+
+  const handleCancelDeactivation = async () => {
+    if (!deactivationRequest?.id) return;
+    setDeactivating(true);
+    try {
+      await axios.delete(`${API}/account/deactivate/${deactivationRequest.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDeactivationRequest(null);
+    } catch { }
+    finally { setDeactivating(false); }
+  };
+
+  // ── Profile picture upload ─────────────────────────────
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -40,7 +128,7 @@ export default function LandlordProfile() {
       });
       const newPicture = res.data?.data?.profile_picture || res.data?.profile_picture;
       if (newPicture) {
-        updateUser({ profile_picture: newPicture });
+        updateUser(res.data.data);
         setProfile((prev) => ({ ...prev, profile_picture_url: STORAGE + newPicture }));
       }
     } catch (err) {
@@ -48,6 +136,62 @@ export default function LandlordProfile() {
     } finally {
       setUploadingAvatar(false);
     }
+  };
+
+  // ── Update phone ───────────────────────────────────────
+  const handleUpdatePhone = async (e) => {
+    e.preventDefault();
+    setPhoneMsg(null);
+    setPhoneLoading(true);
+    try {
+      const res = await axios.post(`${API}/profile/phone`, { phone_number: phone }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAccount(res.data.data);
+      setPhoneMsg({ type: "success", text: "Phone number updated!" });
+      setActiveSection(null);
+    } catch (err) {
+      setPhoneMsg({ type: "error", text: err.response?.data?.message || "Failed to update." });
+    } finally { setPhoneLoading(false); }
+  };
+
+  // ── Update email ───────────────────────────────────────
+  const handleUpdateEmail = async (e) => {
+    e.preventDefault();
+    setEmailMsg(null);
+    setEmailLoading(true);
+    try {
+      const res = await axios.post(`${API}/profile/email`, { email: newEmail, password: emailPass }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAccount(res.data.data);
+      updateUser(res.data.data);
+      setEmailMsg({ type: "success", text: "Email updated!" });
+      setNewEmail(""); setEmailPass("");
+      setActiveSection(null);
+    } catch (err) {
+      setEmailMsg({ type: "error", text: err.response?.data?.message || "Failed to update." });
+    } finally { setEmailLoading(false); }
+  };
+
+  // ── Update password ────────────────────────────────────
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setPassMsg(null);
+    if (newPass !== confirmPass) { setPassMsg({ type: "error", text: "Passwords do not match." }); return; }
+    setPassLoading(true);
+    try {
+      await axios.post(`${API}/profile/password`, {
+        current_password: currentPass,
+        password: newPass,
+        password_confirmation: confirmPass,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setPassMsg({ type: "success", text: "Password updated!" });
+      setCurrentPass(""); setNewPass(""); setConfirmPass("");
+      setActiveSection(null);
+    } catch (err) {
+      setPassMsg({ type: "error", text: err.response?.data?.message || "Failed to update." });
+    } finally { setPassLoading(false); }
   };
 
   if (loading) return (
@@ -70,7 +214,7 @@ export default function LandlordProfile() {
   const listings  = profile?.listings || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-24 md:pb-10">
       <div className="max-w-4xl mx-auto px-4 py-8">
 
         {/* Back button */}
@@ -93,24 +237,23 @@ export default function LandlordProfile() {
                   ) : (
                     <span className="text-3xl font-bold text-[#3d6b35]">{initials}</span>
                   )}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                      <Loader size={20} className="text-white animate-spin" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Upload button — only show for owner */}
                 {isOwner && (
-                  <label className="absolute bottom-0 right-0 w-8 h-8 bg-[#3d6b35] rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-[#2d5a27] transition">
-                    {uploadingAvatar
-                      ? <span className="text-white text-[10px]">...</span>
-                      : <Camera size={14} className="text-white" />
-                    }
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarUpload}
-                      disabled={uploadingAvatar}
-                    />
-                  </label>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-[#3d6b35] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2d5525] transition"
+                  >
+                    <Camera size={14} />
+                  </button>
                 )}
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </div>
 
               <div className="mb-1">
@@ -133,8 +276,167 @@ export default function LandlordProfile() {
             <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
               <Building size={14} /> {listings.length} active listing{listings.length !== 1 ? "s" : ""}
             </p>
+            {isOwner && account?.phone_number && (
+              <p className="text-sm text-gray-500">{account.phone_number}</p>
+            )}
           </div>
         </div>
+
+        {/* ── SELF-VIEW: ACCOUNT SETTINGS ─────────────────── */}
+        {isOwner && (
+          <div className="space-y-4 mb-8">
+
+            {/* Phone */}
+            <Section
+              icon={Phone}
+              title="Phone Number"
+              value={account?.phone_number || "Not set"}
+              isActive={activeSection === "phone"}
+              onEdit={() => setActiveSection(activeSection === "phone" ? null : "phone")}
+            >
+              {phoneMsg && <Msg type={phoneMsg.type} text={phoneMsg.text} />}
+              <form onSubmit={handleUpdatePhone} className="space-y-3 mt-3">
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="09XXXXXXXXX"
+                  maxLength={11}
+                  className={inputClass}
+                />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={phoneLoading} className={btnClass}>
+                    {phoneLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
+
+            {/* Email */}
+            <Section
+              icon={Mail}
+              title="Email Address"
+              value={account?.email || ""}
+              isActive={activeSection === "email"}
+              onEdit={() => setActiveSection(activeSection === "email" ? null : "email")}
+            >
+              {emailMsg && <Msg type={emailMsg.type} text={emailMsg.text} />}
+              <form onSubmit={handleUpdateEmail} className="space-y-3 mt-3">
+                <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email address" className={inputClass} required />
+                <input type="password" value={emailPass} onChange={(e) => setEmailPass(e.target.value)} placeholder="Current password to confirm" className={inputClass} required />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={emailLoading} className={btnClass}>
+                    {emailLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
+
+            {/* Password */}
+            <Section
+              icon={Lock}
+              title="Password"
+              value="••••••••"
+              isActive={activeSection === "password"}
+              onEdit={() => setActiveSection(activeSection === "password" ? null : "password")}
+            >
+              {passMsg && <Msg type={passMsg.type} text={passMsg.text} />}
+              <form onSubmit={handleUpdatePassword} className="space-y-3 mt-3">
+                <div className="relative">
+                  <input type={showCurrent ? "text" : "password"} value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} placeholder="Current password" className={inputClass} required />
+                  <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input type={showNew ? "text" : "password"} value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="New password (min 8 chars)" className={inputClass} required />
+                  <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Confirm new password" className={inputClass} required />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={passLoading} className={btnClass}>
+                    {passLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
+
+            {/* Verification status */}
+            {!isVerified && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-amber-800 text-sm">Identity Not Verified</p>
+                  <p className="text-xs text-amber-600 mt-0.5">Verify your identity to unlock all features</p>
+                </div>
+                <button
+                  onClick={() => navigate("/verify")}
+                  className="text-xs font-bold px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition"
+                >
+                  Verify Now
+                </button>
+              </div>
+            )}
+
+            {/* Account deactivation */}
+            {role !== "admin" && (
+              <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-4">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                      <UserX size={16} className="text-red-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">Deactivate Account</p>
+                      <p className="text-xs text-gray-400">Requires admin approval before taking effect</p>
+                    </div>
+                  </div>
+
+                  {deactivationRequest?.status === "pending" ? (
+                    <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} className="text-amber-600 shrink-0" />
+                        <p className="text-xs text-amber-700 font-medium">Your deactivation request is pending admin review.</p>
+                      </div>
+                      <button
+                        onClick={handleCancelDeactivation}
+                        disabled={deactivating}
+                        className="text-xs font-bold text-amber-700 hover:underline shrink-0 disabled:opacity-50"
+                      >
+                        {deactivating ? "..." : "Cancel Request"}
+                      </button>
+                    </div>
+                  ) : deactivationRequest?.status === "rejected" ? (
+                    <div className="mt-3 space-y-2">
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5">
+                        <p className="text-xs text-gray-600">
+                          Your previous request was declined{deactivationRequest.admin_note ? `: "${deactivationRequest.admin_note}"` : "."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowDeactivateModal(true)}
+                        className="text-xs font-bold text-red-500 hover:underline"
+                      >
+                        Submit a new request
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowDeactivateModal(true)}
+                      className="mt-3 text-xs font-bold px-4 py-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition"
+                    >
+                      Request Deactivation
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Listings */}
         {listings.length > 0 ? (
@@ -153,6 +455,99 @@ export default function LandlordProfile() {
           </div>
         )}
       </div>
+
+      {/* Deactivation confirmation modal */}
+      {showDeactivateModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
+          onClick={() => { if (!deactivating) setShowDeactivateModal(false); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-bold text-gray-900 text-lg">Request Deactivation</h2>
+              <button onClick={() => setShowDeactivateModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+                <X size={18} className="text-gray-600" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5">
+              <p className="text-sm text-gray-600 mb-4">
+                This will submit a request to deactivate your account. An administrator will review it before your account is actually deactivated — you'll be notified either way.
+              </p>
+
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
+                Reason <span className="text-gray-400 font-normal normal-case">(optional)</span>
+              </label>
+              <textarea value={deactivateReason} onChange={(e) => setDeactivateReason(e.target.value)}
+                placeholder="Let us know why you're leaving..."
+                rows={3}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition resize-none mb-4" />
+
+              {deactivateError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-2.5 rounded-xl mb-4">
+                  <AlertCircle size={13} className="shrink-0" /> {deactivateError}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button onClick={() => setShowDeactivateModal(false)}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                  Cancel
+                </button>
+                <button onClick={handleSubmitDeactivation} disabled={deactivating}
+                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                  {deactivating ? <Loader size={14} className="animate-spin" /> : "Submit Request"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// ── Reusable Section ─────────────────────────────────────
+function Section({ icon: Icon, title, value, isActive, onEdit, children }) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+            <Icon size={16} className="text-[#3d6b35]" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
+            <p className="text-sm font-medium text-gray-800">{value}</p>
+          </div>
+        </div>
+        <button onClick={onEdit} className="text-xs font-semibold text-[#3d6b35] flex items-center gap-1 hover:underline">
+          <Edit2 size={13} /> {isActive ? "Cancel" : "Edit"}
+        </button>
+      </div>
+      {isActive && (
+        <div className="px-5 pb-4 border-t border-gray-50">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Message ──────────────────────────────────────────────
+function Msg({ type, text }) {
+  return (
+    <div className={`flex items-center gap-2 text-sm px-3 py-2 rounded-xl mt-2 ${
+      type === "success" ? "bg-green-50 text-green-700 border border-green-200"
+                        : "bg-red-50 text-red-700 border border-red-200"
+    }`}>
+      {type === "success" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+      {text}
+    </div>
+  );
+}
+
+const inputClass = "w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm text-gray-800 outline-none focus:bg-white focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition-all";
+const btnClass   = "flex-1 h-10 bg-[#3d6b35] text-white rounded-xl text-sm font-semibold hover:bg-[#2d5525] transition flex items-center justify-center gap-1";
+const cancelClass = "flex-1 h-10 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition";

@@ -114,8 +114,8 @@ export default function LandlordReservations() {
     <div className="min-h-screen bg-gray-50 pb-24">
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 md:px-10 py-5">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
+      <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-5">
+        <div className="w-full flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
             <Calendar size={20} className="text-[#3d6b35]" />
           </div>
@@ -127,7 +127,7 @@ export default function LandlordReservations() {
       </div>
 
       {/* Filter tabs */}
-      <div className="max-w-4xl mx-auto px-4 md:px-10 pt-4">
+      <div className="w-full px-6 md:px-10 pt-4">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {Object.entries(counts).map(([key, count]) => (
             <button key={key} onClick={() => setFilter(key)}
@@ -142,14 +142,16 @@ export default function LandlordReservations() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 md:px-10 py-4 space-y-4">
+      <div className="w-full px-6 md:px-10 py-4">
 
         {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
             <Calendar size={40} className="text-gray-300 mx-auto mb-3" />
             <p className="font-semibold text-gray-600">No {filter === "all" ? "" : filter} reservations</p>
           </div>
-        ) : filtered.map((res) => {
+        ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {filtered.map((res) => {
           const listing    = res.listing;
           const tenant     = res.tenant;
           const img        = getImage(listing);
@@ -158,7 +160,7 @@ export default function LandlordReservations() {
           const isExpanded = expanded === res.id;
 
           return (
-            <div key={res.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div key={res.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-fit">
 
               {/* Top row */}
               <div className="flex gap-4 p-4 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : res.id)}>
@@ -323,6 +325,8 @@ export default function LandlordReservations() {
             </div>
           );
         })}
+        </div>
+        )}
       </div>
 
       {/* ✅ REJECT / REMOVE REASON MODAL */}

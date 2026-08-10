@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   X, ChevronRight, LogOut, Home, Search, Heart, Calendar,
   MessageCircle, LayoutDashboard, Building, Shield, UserCheck,
-  List, User, MapPin, Calculator, BadgeCheck,
+  List, User, MapPin, Calculator, BadgeCheck, Users, UserX, UserCog, ClipboardList,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/AuthContext";
@@ -37,7 +37,7 @@ export default function HamburgerMenu({ onClose }) {
   ];
 
   const landlordLinks = [
-    { name: "My Dashboard",   path: "/landlord/dashboard",    icon: LayoutDashboard },
+    { name: "My Dashboard",   path: "/landlord/analytics",    icon: LayoutDashboard },
     { name: "My Profile",     path: "/profile",               icon: User },
     { name: "My Listings",    path: "/landlord/listings",     icon: Building },
     { name: "Reservations",   path: "/landlord/reservations", icon: Calendar },
@@ -46,12 +46,15 @@ export default function HamburgerMenu({ onClose }) {
   ];
 
   const adminLinks = [
-    { name: "Admin Dashboard",    path: "/admin/dashboard",    icon: Shield },
+    { name: "Analytics",          path: "/admin/analytics",    icon: Shield },
     { name: "My Profile",         path: "/profile",            icon: User },
     { name: "Verification Queue", path: "/admin/verification", icon: UserCheck },
     { name: "Listing Moderation", path: "/admin/listings",     icon: Building },
     { name: "Amenity Requests",   path: "/admin/amenities",    icon: List },
-    { name: "Analytics",          path: "/admin/analytics",    icon: List },
+    { name: "Listings Summary",   path: "/admin/listings-summary", icon: ClipboardList },
+    { name: "Property Owners",    path: "/admin/landlords",    icon: Users },
+    { name: "User Management",    path: "/admin/users",        icon: UserCog },
+    { name: "Deactivation Requests", path: "/admin/deactivation-requests", icon: UserX },
   ];
 
   const getLinks = () => {

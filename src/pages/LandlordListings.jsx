@@ -7,7 +7,7 @@ import {
   Droplets, Dumbbell, Home, Lock, Flame, Sofa,
   Music, Leaf, Accessibility, Baby, Mountain, Zap, Search, Loader, Star,
   Coffee, BookOpen, Monitor, Sun, Camera, Bed, Bath, Bus, Phone,
-  ShieldCheck, Clock, Bike, Plug, Thermometer, Package, BarChart2,
+  ShieldCheck, Clock, Bike, Plug, Thermometer, Package, BarChart2, Eye,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -585,7 +585,7 @@ export default function LandlordListings() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full">
 
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -858,7 +858,7 @@ export default function LandlordListings() {
         )}
 
         {/* LISTINGS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
           {listings.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <p className="text-gray-500 text-lg">No listings yet</p>
@@ -937,10 +937,16 @@ export default function LandlordListings() {
                     )}
                   </div>
 
-                  <button onClick={() => navigate(`/landlord/listings/${listing.id}/analytics`)}
-                    className="w-full mb-2 py-2 bg-[#3d6b35]/10 text-[#3d6b35] rounded-lg text-sm font-semibold hover:bg-[#3d6b35]/20 transition flex items-center justify-center gap-1.5">
-                    <BarChart2 size={14} /> View Data & Analytics
-                  </button>
+                  <div className="flex gap-2 mb-2">
+                    <button onClick={() => navigate(`/landlord/listings/${listing.id}/analytics`)}
+                      className="flex-1 py-2 bg-[#3d6b35]/10 text-[#3d6b35] rounded-lg text-sm font-semibold hover:bg-[#3d6b35]/20 transition flex items-center justify-center gap-1.5">
+                      <BarChart2 size={14} /> Data & Analytics
+                    </button>
+                    <button onClick={() => navigate(`/listing/${listing.id}?preview=1`)}
+                      className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition flex items-center justify-center gap-1.5">
+                      <Eye size={14} /> Preview
+                    </button>
+                  </div>
 
                   <div className="flex gap-2">
                     <button onClick={() => handleEdit(listing)}

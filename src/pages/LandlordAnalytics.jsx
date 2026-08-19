@@ -250,18 +250,62 @@ export default function LandlordAnalytics() {
               </div>
             </div>
 
-            {/* PER-LISTING PERFORMANCE */}
-            <SectionHeader title="Listing Performance" />
+            {/* UPCOMING VACANCIES — Client 2 (Q12) explicitly named this as something they
+                currently have to guess at */}
+            <SectionHeader title="Upcoming Vacancies" />
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              {!data.upcoming_vacancies || data.upcoming_vacancies.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-8">
+                  No units becoming vacant in the next 30 days.
+                </p>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {data.upcoming_vacancies.map((v, i) => {
+                    const daysUntil = Math.ceil((new Date(v.move_out_date) - new Date()) / 86400000);
+                    return (
+                      <div key={i} className="flex items-center gap-3 px-5 py-3.5">
+                        <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                          <Calendar size={15} className="text-amber-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13.5px] font-semibold text-gray-800 truncate">{v.listing_title}</p>
+                          <p className="text-[11.5px] text-gray-400">{v.barangay || "—"}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[13px] font-bold text-amber-600">
+                            {daysUntil <= 0 ? "Today" : `${daysUntil}d`}
+                          </p>
+                          <p className="text-[10px] text-gray-400">{v.move_out_date}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* PROPERTY COMPARISON — ranked by revenue so landlords can see which listing
+                actually earns the most, not just a flat unordered list */}
+            <SectionHeader title="Property Comparison" />
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               {!data.listing_performance || data.listing_performance.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-12">No listings yet.</p>
               ) : (
                 <div className="max-h-[480px] overflow-y-auto divide-y divide-gray-50">
-                  {data.listing_performance.map((l) => {
+                  {[...data.listing_performance]
+                    .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
+                    .map((l, i) => {
                     const cover = l.images?.[0]?.image_path;
                     return (
                       <div key={l.id} className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
                         onClick={() => navigate(`/landlord/listings/${l.id}/analytics`)}>
+                        <div className="w-6 text-center shrink-0">
+                          {i === 0 && l.revenue > 0 ? (
+                            <span className="text-[16px]">🏆</span>
+                          ) : (
+                            <span className="text-[13px] font-bold text-gray-300">{i + 1}</span>
+                          )}
+                        </div>
                         <div className="w-14 h-14 rounded-xl bg-[#3d6b35]/10 flex items-center justify-center shrink-0 overflow-hidden">
                           {cover ? (
                             <img src={`${API.replace('/api', '')}/storage/${cover}`} alt={l.title} className="w-full h-full object-cover" />
@@ -273,11 +317,15 @@ export default function LandlordAnalytics() {
                           <p className="text-[15px] font-semibold text-gray-800 truncate">{l.title}</p>
                           <p className="text-[13px] text-gray-400">{formatPeso(l.price)}/mo · {l.barangay || l.status}</p>
                         </div>
-                        <div className="text-right shrink-0 w-20">
+                        <div className="text-right shrink-0 w-24">
+                          <p className="text-[16px] font-bold text-[#7c3aed]">{formatPeso(l.revenue)}</p>
+                          <p className="text-[10px] text-gray-400">revenue</p>
+                        </div>
+                        <div className="text-right shrink-0 w-16">
                           <p className="text-[16px] font-bold text-[#3d6b35]">{l.total_reservations}</p>
                           <p className="text-[10px] text-gray-400">requests</p>
                         </div>
-                        <div className="text-right shrink-0 w-20">
+                        <div className="text-right shrink-0 w-16">
                           <p className="text-[16px] font-bold text-blue-600">{l.approved_reservations}</p>
                           <p className="text-[10px] text-gray-400">approved</p>
                         </div>

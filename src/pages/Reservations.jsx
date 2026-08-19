@@ -48,11 +48,21 @@ export default function Reservations() {
     finally { if (!silent) setLoading(false); }
   };
 
+  const [myMaintenanceRequests, setMyMaintenanceRequests] = useState([]);
+
+  const fetchMyMaintenanceRequests = async () => {
+    try {
+      const res = await axios.get(`${API}/maintenance-requests/mine`, { headers });
+      setMyMaintenanceRequests(res.data?.data || []);
+    } catch { }
+  };
+
   useEffect(() => {
     fetchReservations();
+    fetchMyMaintenanceRequests();
     // ✅ Auto-refresh every 15s so approvals/rejections from the landlord side show up
     // without needing a manual page reload
-    const interval = setInterval(() => fetchReservations(true), 15000);
+    const interval = setInterval(() => { fetchReservations(true); fetchMyMaintenanceRequests(); }, 15000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -100,6 +110,7 @@ export default function Reservations() {
       }, { headers });
       setMaintenanceMsg({ type: "success", text: "Your report has been sent to the Property Owner." });
       setMaintenanceTitle(""); setMaintenanceDesc(""); setMaintenanceCategory("");
+      fetchMyMaintenanceRequests();
       setTimeout(() => { setMaintenanceTarget(null); setMaintenanceMsg(null); }, 1800);
     } catch (err) {
       setMaintenanceMsg({ type: "error", text: err.response?.data?.message || "Failed to submit report." });
@@ -241,6 +252,33 @@ export default function Reservations() {
                     >
                       <Wrench size={14} /> Report an Issue
                     </button>
+
+                    {/* Your submitted reports for this listing, with the Property Owner's note */}
+                    {myMaintenanceRequests
+                      .filter((mr) => mr.listing_id === listing?.id || mr.listing?.id === listing?.id)
+                      .map((mr) => {
+                        const statusStyle = {
+                          pending:     "bg-amber-100 text-amber-700",
+                          in_progress: "bg-blue-100 text-blue-700",
+                          resolved:    "bg-green-100 text-green-700",
+                          rejected:    "bg-gray-100 text-gray-500",
+                        }[mr.status] || "bg-gray-100 text-gray-500";
+                        return (
+                          <div key={mr.id} className="mt-2 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <p className="text-xs font-semibold text-gray-700 truncate">{mr.title}</p>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ${statusStyle}`}>
+                                {mr.status.replace("_", " ")}
+                              </span>
+                            </div>
+                            {mr.landlord_note && (
+                              <p className="text-[11px] text-gray-500 mt-1">
+                                <span className="font-semibold text-gray-600">Property Owner:</span> {mr.landlord_note}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
                   </>
                 )}
                 {res.status === "rejected" && (

@@ -4,7 +4,7 @@ import {
   X, ChevronRight, LogOut, Home, Search, Heart, Calendar,
   MessageCircle, LayoutDashboard, Building, Shield, UserCheck,
   List, User, MapPin, Calculator, BadgeCheck, Users, UserX, UserCog, ClipboardList,
-  BarChart2, FileText, Wrench,
+  BarChart2, FileText, Wrench, CalendarDays, Receipt,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/AuthContext";
@@ -43,7 +43,9 @@ export default function HamburgerMenu({ onClose }) {
     { name: "My Profile",     path: "/profile",                 icon: User },
     { name: "My Listings",    path: "/landlord/listings",       icon: Building },
     { name: "Reservations",   path: "/landlord/reservations",   icon: Calendar },
+    { name: "Calendar",       path: "/landlord/calendar",       icon: CalendarDays },
     { name: "Maintenance",    path: "/landlord/maintenance",    icon: Wrench },
+    { name: "Expenses",       path: "/landlord/expenses",       icon: Receipt },
     { name: "Messages",       path: "/landlord/messages",       icon: MessageCircle },
     { name: "Reports",        path: "/landlord/reports",        icon: FileText },
     ...(!isVerified ? [{ name: "Verify Identity", path: "/verify", icon: BadgeCheck }] : []),

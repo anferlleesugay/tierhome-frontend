@@ -3,7 +3,7 @@
 import { useState } from "react";
 import axios from "axios";
 import {
-  FileText, Download, Loader, Calendar, Wallet, Building, AlertCircle,
+  FileText, Download, Loader, Calendar, Wallet, Building, AlertCircle, Receipt,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -40,6 +40,14 @@ const REPORTS = [
     description: "A snapshot of every listing you own — occupancy status, verification status, and reservation counts.",
     endpoint: "/landlord/reports/occupancy",
     noRange: true,
+  },
+  {
+    key: "expenses",
+    icon: Receipt,
+    color: "#dc2626",
+    title: "Expense Report",
+    description: "Every expense you've logged — category, amount, and which listing it's tied to. Pair with Revenue Summary to see your real net income.",
+    endpoint: "/landlord/reports/expenses",
   },
 ];
 
@@ -141,15 +149,6 @@ export default function LandlordReports() {
               </div>
             );
           })}
-        </div>
-
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-          <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-[12.5px] text-amber-700 leading-relaxed">
-            Expense tracking isn't part of TierHome yet, so an expense report isn't available here.
-            These reports cover income, occupancy, and reservation/payment history using data
-            already in your account.
-          </p>
         </div>
       </div>
     </div>

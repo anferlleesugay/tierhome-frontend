@@ -34,6 +34,8 @@ import LandlordAnalytics from "./pages/LandlordAnalytics";
 import LandlordDashboard from "./pages/LandlordDashboard";
 import LandlordReports from "./pages/LandlordReports";
 import LandlordMaintenance from "./pages/LandlordMaintenance";
+import LandlordExpenses from "./pages/LandlordExpenses";
+import LandlordCalendar from "./pages/LandlordCalendar";
 import LandlordLayout from "./layouts/LandlordLayout";
 import ListingAnalytics from "./pages/ListingAnalytics";
 import AdminListingsSummary from "./pages/AdminListingsSummary";
@@ -168,6 +170,8 @@ function App() {
           <Route path="/landlord/data-analytics" element={<LandlordVerifyOnly><LandlordLayout><LandlordAnalytics /></LandlordLayout></LandlordVerifyOnly>} />
           <Route path="/landlord/reports" element={<LandlordVerifyOnly><LandlordLayout><LandlordReports /></LandlordLayout></LandlordVerifyOnly>} />
           <Route path="/landlord/maintenance" element={<LandlordOnly><LandlordLayout><LandlordMaintenance /></LandlordLayout></LandlordOnly>} />
+          <Route path="/landlord/expenses" element={<LandlordOnly><LandlordLayout><LandlordExpenses /></LandlordLayout></LandlordOnly>} />
+          <Route path="/landlord/calendar" element={<LandlordOnly><LandlordLayout><LandlordCalendar /></LandlordLayout></LandlordOnly>} />
           <Route path="/landlord/listings/:id/analytics" element={<LandlordOnly><LandlordLayout><ListingAnalytics /></LandlordLayout></LandlordOnly>} />
           
 

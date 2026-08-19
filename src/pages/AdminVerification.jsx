@@ -2,13 +2,13 @@
 // ✅ FIX #1: Corrected pagination data extraction
 // ✅ FIX #2: Removed hardcoded localhost URL
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   CheckCircle, XCircle, Clock,
   AlertCircle, RefreshCw, Loader,
-  User, BadgeCheck, Eye,
+  User, BadgeCheck, Eye, Search,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -355,6 +355,11 @@ export default function AdminVerification() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(null);
 
+  // ── Search + confidence filter — Client 2 (Q17) specifically asked for
+  // filters and search on the review queue once volume grows past manual size ──
+  const [search, setSearch] = useState("");
+  const [confidenceFilter, setConfidenceFilter] = useState("all"); // all | auto | medium | low
+
   useEffect(() => {
     if (authLoading) return;
     if (!isLoggedIn) {
@@ -455,6 +460,27 @@ export default function AdminVerification() {
 
   if (authLoading) return null;
 
+  const filteredPending = useMemo(() => {
+    let list = pending;
+    if (confidenceFilter !== "all") {
+      list = list.filter((v) => {
+        const score = v.rekognition_score || 0;
+        if (confidenceFilter === "auto") return score >= 90;
+        if (confidenceFilter === "medium") return score >= 70 && score < 90;
+        return score < 70;
+      });
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((v) => {
+        const u = v.user || {};
+        return `${u.first_name || ""} ${u.last_name || ""}`.toLowerCase().includes(q)
+          || (u.email || "").toLowerCase().includes(q);
+      });
+    }
+    return list;
+  }, [pending, search, confidenceFilter]);
+
   return (
     <>
       {toast && (
@@ -502,6 +528,40 @@ export default function AdminVerification() {
 
         <div className="w-full px-6 md:px-10 pt-6">
 
+          {/* SEARCH + CONFIDENCE FILTER */}
+          {!loading && pending.length > 0 && (
+            <div className="flex items-center gap-3 mb-5 flex-wrap">
+              <div className="relative flex-1 min-w-[220px] max-w-sm">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by name or email..."
+                  className="w-full h-10 bg-white border border-gray-200 rounded-xl pl-10 pr-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition-all"
+                />
+              </div>
+              <div className="flex gap-2">
+                {[
+                  { key: "all", label: "All" },
+                  { key: "auto", label: "Auto-Verified ≥90%" },
+                  { key: "medium", label: "Medium 70–89%" },
+                  { key: "low", label: "Low <70%" },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setConfidenceFilter(f.key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition shrink-0 ${
+                      confidenceFilter === f.key ? "bg-[#3d6b35] text-white" : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-50"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {[1, 2].map(i => <SkeletonVerifCard key={i} />)}
@@ -526,10 +586,15 @@ export default function AdminVerification() {
           {!loading && pending.length > 0 && (
             <div>
               <h2 className="text-[13px] font-bold text-gray-500 uppercase tracking-wider mb-4">
-                Pending Review ({pending.length})
+                Pending Review ({filteredPending.length}{filteredPending.length !== pending.length ? ` of ${pending.length}` : ""})
               </h2>
+              {filteredPending.length === 0 ? (
+                <div className="bg-white rounded-2xl p-10 text-center border border-gray-100 mb-10">
+                  <p className="text-sm text-gray-400">No submissions match your search or filter.</p>
+                </div>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-10">
-                {pending.map(item => (
+                {filteredPending.map(item => (
                   <VerificationCard
                     key={item.id}
                     item={item}
@@ -539,6 +604,7 @@ export default function AdminVerification() {
                   />
                 ))}
               </div>
+              )}
             </div>
           )}
 

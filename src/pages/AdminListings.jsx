@@ -1,10 +1,10 @@
 // FILE: src/pages/AdminListings.jsx
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Building, CheckCircle, XCircle, MapPin,
-  RefreshCw, Loader, Eye, Home,
+  RefreshCw, Loader, Eye, Home, Search, Square, CheckSquare,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -64,14 +64,16 @@ function RejectModal({ open, onClose, onConfirm, processing }) {
   );
 }
 
-function ListingCard({ listing, onApprove, onReject, processing, navigate }) {
+function ListingCard({ listing, onApprove, onReject, processing, navigate, selected, onToggleSelect }) {
   const imgs    = listing.images?.length > 0 ? listing.images : null;
   const imgUrl  = imgs ? STORAGE + imgs[0].image_path : listing.image ? STORAGE + listing.image : null;
   const landlord = listing.landlord || {};
   const amenities = (listing.amenities || []).map((a) => a.name || a).filter(Boolean);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition ${
+      selected ? "border-[#3d6b35] ring-2 ring-[#3d6b35]/15" : "border-gray-100"
+    }`}>
       {/* Image */}
       <div className="relative h-48 bg-gray-100">
         {imgUrl ? (
@@ -82,7 +84,14 @@ function ListingCard({ listing, onApprove, onReject, processing, navigate }) {
             <Building size={40} className="text-gray-300" />
           </div>
         )}
-        <div className="absolute top-3 left-3 bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-200">
+        <button
+          onClick={() => onToggleSelect(listing.id)}
+          className="absolute top-3 left-3 w-7 h-7 rounded-lg bg-white/90 flex items-center justify-center shadow-sm hover:bg-white transition"
+          title={selected ? "Deselect" : "Select for bulk action"}
+        >
+          {selected ? <CheckSquare size={16} className="text-[#3d6b35]" /> : <Square size={16} className="text-gray-400" />}
+        </button>
+        <div className="absolute top-3 left-[46px] bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-200">
           ⏳ Pending Review
         </div>
         <button
@@ -168,6 +177,13 @@ export default function AdminListings() {
   const [rejectTarget,     setRejectTarget]     = useState(null);
   const [rejectProcessing, setRejectProcessing] = useState(false);
 
+  // ── Search + filter + bulk select — Client 2 (Q17) asked for these on the review queue ──
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [selected, setSelected] = useState(new Set());
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [bulkRejectOpen, setBulkRejectOpen] = useState(false);
+
   const headers = { Authorization: `Bearer ${token}` };
 
   const fetchListings = async () => {
@@ -206,6 +222,71 @@ export default function AdminListings() {
     } finally { setRejectProcessing(false); }
   };
 
+  // ── Search + type filter ──
+  const propertyTypes = useMemo(
+    () => Array.from(new Set(listings.map((l) => l.property_type).filter(Boolean))),
+    [listings]
+  );
+
+  const filteredListings = useMemo(() => {
+    let list = listings;
+    if (typeFilter !== "all") list = list.filter((l) => l.property_type === typeFilter);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((l) => {
+        const landlord = l.landlord || {};
+        return (l.title || "").toLowerCase().includes(q)
+          || (l.barangay || "").toLowerCase().includes(q)
+          || `${landlord.first_name || ""} ${landlord.last_name || ""}`.toLowerCase().includes(q);
+      });
+    }
+    return list;
+  }, [listings, search, typeFilter]);
+
+  // ── Bulk select ──
+  const toggleSelect = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === filteredListings.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filteredListings.map((l) => l.id)));
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    setBulkProcessing(true);
+    try {
+      const results = await Promise.allSettled(
+        Array.from(selected).map((id) => axios.post(`${API}/admin/listings/${id}/approve`, {}, { headers }))
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      show(failed > 0 ? `Approved ${results.length - failed}, ${failed} failed.` : `${results.length} listing(s) approved! ✅`, failed > 0 ? "error" : "success");
+      setSelected(new Set());
+      fetchListings();
+    } finally { setBulkProcessing(false); }
+  };
+
+  const handleBulkReject = async (reason) => {
+    setBulkProcessing(true);
+    try {
+      const results = await Promise.allSettled(
+        Array.from(selected).map((id) => axios.post(`${API}/admin/listings/${id}/reject`, { reason }, { headers }))
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      show(failed > 0 ? `Rejected ${results.length - failed}, ${failed} failed.` : `${results.length} listing(s) rejected.`, failed > 0 ? "error" : "success");
+      setSelected(new Set());
+      setBulkRejectOpen(false);
+      fetchListings();
+    } finally { setBulkProcessing(false); }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
 
@@ -236,6 +317,46 @@ export default function AdminListings() {
       </div>
 
       <div className="w-full px-6 md:px-10 mt-6">
+        {/* SEARCH + TYPE FILTER + SELECT ALL */}
+        {!loading && listings.length > 0 && (
+          <div className="flex items-center gap-3 mb-5 flex-wrap">
+            <div className="relative flex-1 min-w-[220px] max-w-sm">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search title, owner, or barangay..."
+                className="w-full h-10 bg-white border border-gray-200 rounded-xl pl-10 pr-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition-all"
+              />
+            </div>
+            {propertyTypes.length > 1 && (
+              <div className="flex gap-2 flex-wrap">
+                <button onClick={() => setTypeFilter("all")}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition shrink-0 ${
+                    typeFilter === "all" ? "bg-[#3d6b35] text-white" : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-50"
+                  }`}>
+                  All Types
+                </button>
+                {propertyTypes.map((t) => (
+                  <button key={t} onClick={() => setTypeFilter(t)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition shrink-0 ${
+                      typeFilter === t ? "bg-[#3d6b35] text-white" : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-50"
+                    }`}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+            <button onClick={toggleSelectAll}
+              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition shrink-0">
+              {selected.size === filteredListings.length && filteredListings.length > 0
+                ? <CheckSquare size={13} className="text-[#3d6b35]" /> : <Square size={13} />}
+              {selected.size === filteredListings.length && filteredListings.length > 0 ? "Deselect All" : "Select All"}
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {[...Array(4)].map((_, i) => (
@@ -248,25 +369,56 @@ export default function AdminListings() {
             <h3 className="text-lg font-bold text-gray-700 mb-1">All clear!</h3>
             <p className="text-sm text-gray-400">No listings pending review.</p>
           </div>
+        ) : filteredListings.length === 0 ? (
+          <div className="bg-white rounded-2xl p-10 text-center border border-gray-100 shadow-sm">
+            <p className="text-sm text-gray-400">No listings match your search or filter.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {listings.map((listing) => (
+            {filteredListings.map((listing) => (
               <ListingCard key={listing.id} listing={listing}
                 onApprove={handleApprove}
                 onReject={(id) => setRejectTarget(id)}
                 processing={processing}
                 navigate={navigate}
+                selected={selected.has(listing.id)}
+                onToggleSelect={toggleSelect}
               />
             ))}
           </div>
         )}
       </div>
 
+      {/* FLOATING BULK ACTION BAR */}
+      {selected.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 px-5 py-3 flex items-center gap-4">
+          <span className="text-sm font-semibold text-gray-700">{selected.size} selected</span>
+          <button onClick={() => setBulkRejectOpen(true)} disabled={bulkProcessing}
+            className="px-4 py-2 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-50">
+            Reject All
+          </button>
+          <button onClick={handleBulkApprove} disabled={bulkProcessing}
+            className="px-4 py-2 rounded-xl bg-[#3d6b35] text-white text-sm font-semibold hover:bg-[#2d5525] transition flex items-center gap-2 disabled:opacity-50">
+            {bulkProcessing ? <Loader size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+            Approve All
+          </button>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:text-gray-600">
+            Clear
+          </button>
+        </div>
+      )}
+
       <RejectModal
         open={!!rejectTarget}
         onClose={() => setRejectTarget(null)}
         onConfirm={handleRejectConfirm}
         processing={rejectProcessing}
+      />
+      <RejectModal
+        open={bulkRejectOpen}
+        onClose={() => setBulkRejectOpen(false)}
+        onConfirm={handleBulkReject}
+        processing={bulkProcessing}
       />
       <Toast message={toast?.message} type={toast?.type} />
     </div>

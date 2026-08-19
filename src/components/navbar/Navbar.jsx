@@ -105,13 +105,6 @@ export default function Navbar() {
     propertyType !== "All Types" ? propertyType : "Any Type",
   ].join(" · ");
 
-  const adminLinks = [
-    { to: "/admin/analytics",    icon: BarChart2,     label: "Analytics" },
-    { to: "/admin/verification", icon: CheckSquare,   label: "Verifications" },
-    { to: "/admin/listings",     icon: ClipboardList, label: "Listings" },
-    { to: "/admin/amenities",    icon: Star,          label: "Amenities" },
-  ];
-
   const isLandlord = role === "landlord";
   const isAdmin    = role === "admin";
 
@@ -132,16 +125,14 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Center — nav links for admin, search for tenant/guest. Landlord's primary
-              navigation now lives in the sidebar, so nothing duplicated here. */}
+          {/* Center — search for tenant/guest. Landlord and admin's primary
+              navigation now lives in their sidebars, so nothing duplicated here. */}
           {isWelcomePage ? (
             <div />
           ) : isLandlord ? (
             <div />
           ) : isAdmin ? (
-            <div className="flex items-center gap-1">
-              {adminLinks.map((l) => <TopNavLink key={l.to} {...l} />)}
-            </div>
+            <div />
           ) : !scrolled ? (
             <SearchBar barangay={barangay} setBarangay={setBarangay}
               budget={budget} setBudget={setBudget}

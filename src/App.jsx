@@ -37,6 +37,7 @@ import LandlordMaintenance from "./pages/LandlordMaintenance";
 import LandlordExpenses from "./pages/LandlordExpenses";
 import LandlordCalendar from "./pages/LandlordCalendar";
 import LandlordLayout from "./layouts/LandlordLayout";
+import AdminLayout from "./layouts/AdminLayout";
 import ListingAnalytics from "./pages/ListingAnalytics";
 import AdminListingsSummary from "./pages/AdminListingsSummary";
 
@@ -178,16 +179,16 @@ function App() {
           {/* ADMIN ROUTES */}
           {/* "Dashboard" now folds into Analytics — old links/bookmarks still work via redirect */}
           <Route path="/admin/dashboard"    element={<Navigate to="/admin/analytics" replace />} />
-          <Route path="/admin/verification" element={<AdminOnly><AdminVerification /></AdminOnly>} />
-          <Route path="/admin/listings"     element={<AdminOnly><AdminListings /></AdminOnly>} />
-          <Route path="/admin/analytics"    element={<AdminOnly><AdminAnalytics /></AdminOnly>} />
-          <Route path="/admin/amenities"    element={<AdminOnly><AdminAmenityRequests /></AdminOnly>} />
-          <Route path="/admin/landlords"      element={<AdminOnly><AdminLandlords /></AdminOnly>} />
-          <Route path="/admin/landlords/:id"  element={<AdminOnly><AdminLandlordDetail /></AdminOnly>} />
-          <Route path="/admin/listings/:id/analytics" element={<AdminOnly><ListingAnalytics /></AdminOnly>} />
-          <Route path="/admin/listings-summary" element={<AdminOnly><AdminListingsSummary /></AdminOnly>} />
-          <Route path="/admin/deactivation-requests" element={<AdminOnly><AdminDeactivationRequests /></AdminOnly>} />
-          <Route path="/admin/users"          element={<AdminOnly><AdminUserManagement /></AdminOnly>} />
+          <Route path="/admin/verification" element={<AdminOnly><AdminLayout><AdminVerification /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/listings"     element={<AdminOnly><AdminLayout><AdminListings /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/analytics"    element={<AdminOnly><AdminLayout><AdminAnalytics /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/amenities"    element={<AdminOnly><AdminLayout><AdminAmenityRequests /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/landlords"      element={<AdminOnly><AdminLayout><AdminLandlords /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/landlords/:id"  element={<AdminOnly><AdminLayout><AdminLandlordDetail /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/listings/:id/analytics" element={<AdminOnly><AdminLayout><ListingAnalytics /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/listings-summary" element={<AdminOnly><AdminLayout><AdminListingsSummary /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/deactivation-requests" element={<AdminOnly><AdminLayout><AdminDeactivationRequests /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/users"          element={<AdminOnly><AdminLayout><AdminUserManagement /></AdminLayout></AdminOnly>} />
         </Route>
 
         {/* PUBLIC ROUTES */}

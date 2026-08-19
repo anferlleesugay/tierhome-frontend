@@ -162,8 +162,8 @@ export default function AdminDashboard() {
 
         {/* ── TASK TRACKER + ACTIVITY FEED — same pattern validated by both interview
              respondents for the Property Owner dashboard, applied platform-wide here ── */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div>
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[340px]">
             <SectionHeader title="Needs Your Attention" />
             <div className="mt-3">
               <Card>
@@ -232,7 +232,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div>
+          <div className="flex-1 min-w-[340px]">
             <SectionHeader title="Platform Activity" />
             <div className="mt-3">
               <Card>

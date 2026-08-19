@@ -135,8 +135,8 @@ export default function AdminRevenueByOwner() {
         )}
 
         {/* ── REVENUE BY MONTH + REVENUE BY PROPERTY ── */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div>
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[340px]">
             <SectionHeader title="Revenue by Month" />
             <Card className="mt-3">
               {reportLoading ? (
@@ -157,7 +157,7 @@ export default function AdminRevenueByOwner() {
             </Card>
           </div>
 
-          <div>
+          <div className="flex-1 min-w-[340px]">
             <SectionHeader title="Revenue by Property (Top 10)" />
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-3">
               {reportLoading ? (

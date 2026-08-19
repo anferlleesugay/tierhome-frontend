@@ -194,8 +194,135 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-10 w-full">
-      <div className="w-full px-6 md:px-10 py-8">
+      <div className={role === "admin" ? "max-w-2xl mx-auto px-4 md:px-0 py-8" : "w-full px-6 md:px-10 py-8"}>
 
+        {/* Admin gets a centered single-column layout — it has far less content
+            (no deactivation card, no listings) than tenant/landlord, so the wide
+            two-column grid used below just left a broken wall of empty space. */}
+        {role === "admin" ? (
+          <div className="space-y-4">
+            {/* PROFILE CARD */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="h-24 bg-gradient-to-r from-[#3d6b35] to-[#2d5a27]" />
+              <div className="px-6 pb-6">
+                <div className="flex items-end justify-between -mt-12 mb-4">
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-green-100 flex items-center justify-center">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-3xl font-bold text-[#3d6b35]">{initials}</span>
+                      )}
+                      {uploading && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                          <Loader size={20} className="text-white animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 w-8 h-8 bg-[#3d6b35] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2d5525] transition"
+                    >
+                      <Camera size={14} />
+                    </button>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureChange} />
+                  </div>
+                  <div className="flex gap-2 mb-1">
+                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${roleColor}`}>
+                      Admin
+                    </span>
+                    {isVerified && (
+                      <span className="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">
+                        <BadgeCheck size={12} /> Verified
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  {profile?.first_name} {profile?.middle_initial ? profile.middle_initial + ". " : ""}{profile?.last_name}
+                </h1>
+                <p className="text-sm text-gray-500">{profile?.email}</p>
+                {profile?.phone_number && (
+                  <p className="text-sm text-gray-500">{profile.phone_number}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Phone */}
+            <Section
+              icon={Phone}
+              title="Phone Number"
+              value={profile?.phone_number || "Not set"}
+              isActive={activeSection === "phone"}
+              onEdit={() => setActiveSection(activeSection === "phone" ? null : "phone")}
+            >
+              {phoneMsg && <Msg type={phoneMsg.type} text={phoneMsg.text} />}
+              <form onSubmit={handleUpdatePhone} className="space-y-3 mt-3">
+                <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09XXXXXXXXX" maxLength={11} className={inputClass} />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={phoneLoading} className={btnClass}>
+                    {phoneLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
+
+            {/* Email */}
+            <Section
+              icon={Mail}
+              title="Email Address"
+              value={profile?.email}
+              isActive={activeSection === "email"}
+              onEdit={() => setActiveSection(activeSection === "email" ? null : "email")}
+            >
+              {emailMsg && <Msg type={emailMsg.type} text={emailMsg.text} />}
+              <form onSubmit={handleUpdateEmail} className="space-y-3 mt-3">
+                <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email address" className={inputClass} required />
+                <input type="password" value={emailPass} onChange={(e) => setEmailPass(e.target.value)} placeholder="Current password to confirm" className={inputClass} required />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={emailLoading} className={btnClass}>
+                    {emailLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
+
+            {/* Password */}
+            <Section
+              icon={Lock}
+              title="Password"
+              value="••••••••"
+              isActive={activeSection === "password"}
+              onEdit={() => setActiveSection(activeSection === "password" ? null : "password")}
+            >
+              {passMsg && <Msg type={passMsg.type} text={passMsg.text} />}
+              <form onSubmit={handleUpdatePassword} className="space-y-3 mt-3">
+                <div className="relative">
+                  <input type={showCurrent ? "text" : "password"} value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} placeholder="Current password" className={inputClass} required />
+                  <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input type={showNew ? "text" : "password"} value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="New password (min 8 chars)" className={inputClass} required />
+                  <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Confirm new password" className={inputClass} required />
+                <div className="flex gap-2">
+                  <button type="submit" disabled={passLoading} className={btnClass}>
+                    {passLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  </button>
+                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                </div>
+              </form>
+            </Section>
+          </div>
+        ) : (
+        <>
         {/* Two-column on desktop: profile card + status on the left, editable fields on the right */}
         <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6 items-start">
 
@@ -411,6 +538,8 @@ export default function Profile() {
             </Section>
           </div>
         </div>
+        </>
+        )}
       </div>
 
       {/* ✅ DEACTIVATION CONFIRMATION MODAL */}

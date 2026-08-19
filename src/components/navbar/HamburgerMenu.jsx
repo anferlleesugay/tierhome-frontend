@@ -4,7 +4,7 @@ import {
   X, ChevronRight, LogOut, Home, Search, Heart, Calendar,
   MessageCircle, LayoutDashboard, Building, Shield, UserCheck,
   List, User, MapPin, Calculator, BadgeCheck, Users, UserX, UserCog, ClipboardList,
-  BarChart2, FileText, Wrench, CalendarDays, Receipt,
+  BarChart2, FileText, Wrench, CalendarDays, Receipt, Wallet, ScrollText,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/AuthContext";
@@ -52,6 +52,7 @@ export default function HamburgerMenu({ onClose }) {
   ];
 
   const adminLinks = [
+    { name: "My Dashboard",       path: "/admin/dashboard",    icon: LayoutDashboard },
     { name: "Analytics",          path: "/admin/analytics",    icon: Shield },
     { name: "My Profile",         path: "/profile",            icon: User },
     { name: "Verification Queue", path: "/admin/verification", icon: UserCheck },
@@ -59,8 +60,10 @@ export default function HamburgerMenu({ onClose }) {
     { name: "Amenity Requests",   path: "/admin/amenities",    icon: List },
     { name: "Listings Summary",   path: "/admin/listings-summary", icon: ClipboardList },
     { name: "Property Owners",    path: "/admin/landlords",    icon: Users },
+    { name: "Revenue by Owner",   path: "/admin/revenue-by-owner", icon: Wallet },
     { name: "User Management",    path: "/admin/users",        icon: UserCog },
     { name: "Deactivation Requests", path: "/admin/deactivation-requests", icon: UserX },
+    { name: "Audit Trail",        path: "/admin/audit-trail",  icon: ScrollText },
   ];
 
   const getLinks = () => {

@@ -52,6 +52,7 @@ import AdminLandlords from "./pages/AdminLandlords";
 import AdminLandlordDetail from "./pages/AdminLandlordDetail";
 import AdminDeactivationRequests from "./pages/AdminDeactivationRequests";
 import AdminUserManagement from "./pages/AdminUserManagement";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function AdminOnly({ children }) {
   const { isLoggedIn, role, loading } = useAuth();
@@ -97,26 +98,26 @@ function App() {
   const redirectHome = () => {
     if (!isLoggedIn) return <Welcome />;
     if (role === "landlord") return <Navigate to="/landlord/analytics" replace />;
-    if (role === "admin") return <Navigate to="/admin/analytics" replace />;
+    if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
     return <Navigate to="/browse" replace />;
   };
 
   const protectBrowse = () => {
     if (isLoggedIn && role === "landlord") return <Navigate to="/landlord/analytics" replace />;
-    if (isLoggedIn && role === "admin") return <Navigate to="/admin/analytics" replace />;
+    if (isLoggedIn && role === "admin") return <Navigate to="/admin/dashboard" replace />;
     return <Browse />;
   };
 
   const protectListing = () => {
     const isPreview = new URLSearchParams(location.search).get("preview") === "1";
     if (!isPreview && role === "landlord") return <Navigate to="/landlord/analytics" replace />;
-    if (!isPreview && role === "admin") return <Navigate to="/admin/analytics" replace />;
+    if (!isPreview && role === "admin") return <Navigate to="/admin/dashboard" replace />;
     return <ListingDetail />;
   };
 
   const protectVerify = () => {
     if (role === "landlord") return <LandlordVerifyOnly><Verify /></LandlordVerifyOnly>;
-    if (role === "admin") return <Navigate to="/admin/analytics" replace />;
+    if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
     return <Verify />;
   };
 
@@ -180,7 +181,7 @@ function App() {
 
           {/* ADMIN ROUTES */}
           {/* "Dashboard" now folds into Analytics — old links/bookmarks still work via redirect */}
-          <Route path="/admin/dashboard"    element={<Navigate to="/admin/analytics" replace />} />
+          <Route path="/admin/dashboard"    element={<AdminOnly><AdminLayout><AdminDashboard /></AdminLayout></AdminOnly>} />
           <Route path="/admin/verification" element={<AdminOnly><AdminLayout><AdminVerification /></AdminLayout></AdminOnly>} />
           <Route path="/admin/listings"     element={<AdminOnly><AdminLayout><AdminListings /></AdminLayout></AdminOnly>} />
           <Route path="/admin/analytics"    element={<AdminOnly><AdminLayout><AdminAnalytics /></AdminLayout></AdminOnly>} />

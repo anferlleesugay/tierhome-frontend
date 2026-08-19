@@ -239,15 +239,7 @@ export default function Navbar() {
                       </div>
                     )}
 
-                    {/* Admin links — pages not shown in the top bar */}
-                    {isAdmin && (
-                      <div className="py-1">
-                        <DropdownItem label="Property Owners"       to="/admin/landlords"             onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="Listings Summary"      to="/admin/listings-summary"      onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="User Management"       to="/admin/users"                 onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="Deactivation Requests" to="/admin/deactivation-requests" onClose={() => setOpenDropdown(false)} />
-                      </div>
-                    )}
+                    {/* Admin — all admin pages live in the left sidebar now, so nothing admin-specific belongs here */}
 
                     {/* Logout */}
                     <div className="border-t border-gray-50 px-2 py-2">

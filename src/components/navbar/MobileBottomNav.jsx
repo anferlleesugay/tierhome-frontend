@@ -2,7 +2,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home, Search, Heart, MessageCircle, User,
-  LayoutDashboard, Shield, Building, MapPin, Calendar, BarChart2, UserCog, TrendingUp,
+  LayoutDashboard, Shield, Building, MapPin, Calendar, BarChart2, TrendingUp, Star,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -45,11 +45,11 @@ export default function MobileBottomNav() {
     ];
 
     if (role === "admin") return [
-      { name: "Users",     path: "/admin/users",        icon: UserCog,        auth: false },
+      { name: "Dashboard", path: "/admin/dashboard",    icon: LayoutDashboard,auth: false },
       { name: "Verify",    path: "/admin/verification", icon: User,           auth: false },
       { name: "Listings",  path: "/admin/listings",     icon: Building,       auth: false },
-      { name: "Amenities", path: "/admin/amenities",    icon: LayoutDashboard,auth: false },
-      { name: "Analytics", path: "/admin/analytics",    icon: Shield,         auth: false },
+      { name: "Amenities", path: "/admin/amenities",    icon: Star,           auth: false },
+      { name: "Analytics", path: "/admin/analytics",    icon: TrendingUp,     auth: false },
     ];
 
     return [

@@ -193,7 +193,7 @@ export default function AdminAnalytics() {
       <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-4 sticky top-0 z-20">
         <div className="w-full flex items-center justify-between">
           <h1 className="text-[22px] font-bold text-gray-900 flex items-center gap-2">
-            <BarChart2 size={24} color="#3d6b35" /> Analytics & Audit Dashboard
+            <BarChart2 size={24} color="#3d6b35" /> Analytics
           </h1>
           <button
             onClick={() => { fetchAll(); fetchTrends(); }}

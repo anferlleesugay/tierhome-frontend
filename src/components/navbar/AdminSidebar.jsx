@@ -2,11 +2,12 @@
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  BarChart2, CheckSquare, ClipboardList, Star, Users, UserCog, UserX,
+  LayoutDashboard, BarChart2, CheckSquare, ClipboardList, Star, Users, UserCog, UserX,
   FileText, ChevronLeft, ChevronRight, ScrollText, Wallet,
 } from "lucide-react";
 
 const NAV_ITEMS = [
+  { label: "Dashboard",       path: "/admin/dashboard",              icon: LayoutDashboard },
   { label: "Analytics",       path: "/admin/analytics",              icon: BarChart2 },
   { label: "Verifications",   path: "/admin/verification",           icon: CheckSquare },
   { label: "Listings",        path: "/admin/listings",                icon: ClipboardList },

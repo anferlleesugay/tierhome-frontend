@@ -32,6 +32,7 @@ import LandlordReservations from "./pages/LandlordReservations";
 import LandlordMessages from "./pages/LandlordMessages";
 import LandlordAnalytics from "./pages/LandlordAnalytics";
 import LandlordDashboard from "./pages/LandlordDashboard";
+import LandlordReports from "./pages/LandlordReports";
 import LandlordLayout from "./layouts/LandlordLayout";
 import ListingAnalytics from "./pages/ListingAnalytics";
 import AdminListingsSummary from "./pages/AdminListingsSummary";
@@ -164,6 +165,7 @@ function App() {
           } />
           <Route path="/landlord/analytics" element={<LandlordVerifyOnly><LandlordLayout><LandlordDashboard /></LandlordLayout></LandlordVerifyOnly>} />
           <Route path="/landlord/data-analytics" element={<LandlordVerifyOnly><LandlordLayout><LandlordAnalytics /></LandlordLayout></LandlordVerifyOnly>} />
+          <Route path="/landlord/reports" element={<LandlordVerifyOnly><LandlordLayout><LandlordReports /></LandlordLayout></LandlordVerifyOnly>} />
           <Route path="/landlord/listings/:id/analytics" element={<LandlordOnly><LandlordLayout><ListingAnalytics /></LandlordLayout></LandlordOnly>} />
           
 

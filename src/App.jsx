@@ -38,6 +38,8 @@ import LandlordExpenses from "./pages/LandlordExpenses";
 import LandlordCalendar from "./pages/LandlordCalendar";
 import LandlordLayout from "./layouts/LandlordLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import AdminRevenueByOwner from "./pages/AdminRevenueByOwner";
+import AdminAuditTrail from "./pages/AdminAuditTrail";
 import ListingAnalytics from "./pages/ListingAnalytics";
 import AdminListingsSummary from "./pages/AdminListingsSummary";
 
@@ -189,6 +191,8 @@ function App() {
           <Route path="/admin/listings-summary" element={<AdminOnly><AdminLayout><AdminListingsSummary /></AdminLayout></AdminOnly>} />
           <Route path="/admin/deactivation-requests" element={<AdminOnly><AdminLayout><AdminDeactivationRequests /></AdminLayout></AdminOnly>} />
           <Route path="/admin/users"          element={<AdminOnly><AdminLayout><AdminUserManagement /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/revenue-by-owner" element={<AdminOnly><AdminLayout><AdminRevenueByOwner /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/audit-trail"    element={<AdminOnly><AdminLayout><AdminAuditTrail /></AdminLayout></AdminOnly>} />
         </Route>
 
         {/* PUBLIC ROUTES */}

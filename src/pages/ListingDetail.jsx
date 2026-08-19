@@ -92,7 +92,7 @@ export default function ListingDetail() {
 
   const handleReserve = async () => {
     if (!termsAccepted) {
-      setReserveError("Please confirm you have read and agree to the terms and conditions.");
+      setReserveError("Please confirm you have read and agree to the house rules & policies.");
       return;
     }
     setReserveError("");
@@ -536,7 +536,7 @@ const handlePay = async () => {
                   ) : (
                     <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
                       <p className="text-sm text-gray-500">
-                        This landlord has not provided specific terms and conditions for this listing.
+                        This Property Owner has not provided specific house rules & policies for this listing.
                       </p>
                     </div>
                   )}
@@ -546,7 +546,7 @@ const handlePay = async () => {
                       onChange={(e) => setTermsAccepted(e.target.checked)}
                       className="mt-0.5 w-4 h-4 accent-[#3d6b35] shrink-0" />
                     <span className="text-sm text-gray-600">
-                      I have read and agree to the property's terms and conditions{listing.terms_and_conditions ? "" : " (none provided by landlord)"}.
+                      I have read and agree to the property's house rules & policies{listing.terms_and_conditions ? "" : " (none provided by the Property Owner)"}.
                     </span>
                   </label>
 
@@ -605,7 +605,7 @@ const handlePay = async () => {
                       Message to Property Owner <span className="text-gray-400 font-normal normal-case">(optional)</span>
                     </label>
                     <textarea value={reserveNotes} onChange={(e) => setReserveNotes(e.target.value)}
-                      placeholder="Any notes or questions for the landlord..."
+                      placeholder="Any notes or questions for the Property Owner..."
                       rows={3}
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition resize-none" />
                   </div>
@@ -666,7 +666,7 @@ const handlePay = async () => {
                   </div>
                   <h3 className="font-bold text-gray-900 text-lg mb-2">Request Sent!</h3>
                   <p className="text-sm text-gray-500 mb-5">
-                    Your reservation request has been sent{listing?.reservation_fee > 0 ? " and your reservation fee payment was confirmed (sandbox)" : ""}. The landlord will review and respond.
+                    Your reservation request has been sent{listing?.reservation_fee > 0 ? " and your reservation fee payment was confirmed (sandbox)" : ""}. The Property Owner will review and respond.
                   </p>
                   <button onClick={() => navigate("/tenant/reservations")}
                     className="w-full py-3 bg-[#3d6b35] text-white rounded-xl font-semibold hover:bg-[#2d5525] transition">

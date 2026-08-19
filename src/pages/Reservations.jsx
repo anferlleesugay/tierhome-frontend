@@ -129,8 +129,8 @@ export default function Reservations() {
     <div className="min-h-screen bg-gray-50 pb-24">
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 md:px-10 py-5">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
+      <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-5">
+        <div className="w-full flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
             <Calendar size={20} className="text-[#3d6b35]" />
           </div>
@@ -141,7 +141,7 @@ export default function Reservations() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 md:px-10 py-6 space-y-4">
+      <div className="w-full px-6 md:px-10 py-6">
 
         {reservations.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
@@ -153,7 +153,9 @@ export default function Reservations() {
               Browse Listings
             </button>
           </div>
-        ) : reservations.map((res) => {
+        ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {reservations.map((res) => {
           const listing   = res.listing;
           const img       = getImage(listing);
           const cfg       = STATUS_CONFIG[res.status] || STATUS_CONFIG.pending;
@@ -231,7 +233,7 @@ export default function Reservations() {
                 {res.status === "pending" && (
                   <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
                     <Clock size={13} className="shrink-0" />
-                    Waiting for landlord to approve your request.
+                    Waiting for the Property Owner to approve your request.
                   </div>
                 )}
                 {res.status === "approved" && (
@@ -309,6 +311,8 @@ export default function Reservations() {
             </div>
           );
         })}
+        </div>
+        )}
       </div>
 
       {/* ✅ CANCEL REASON MODAL */}
@@ -328,7 +332,7 @@ export default function Reservations() {
 
             <div className="px-6 py-5">
               <p className="text-sm text-gray-600 mb-4">
-                Are you sure you want to cancel this reservation? Letting the landlord know why helps them understand.
+                Are you sure you want to cancel this reservation? Letting the Property Owner know why helps them understand.
               </p>
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
                 Reason <span className="text-gray-400 font-normal normal-case">(optional)</span>

@@ -118,7 +118,7 @@ export default function AdminLandlordDetail() {
           </div>
         ) : notFound || !data ? (
           <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-            <p className="text-sm text-gray-400">Could not load this landlord's data.</p>
+            <p className="text-sm text-gray-400">Could not load this Property Owner's data.</p>
           </div>
         ) : (
           <>

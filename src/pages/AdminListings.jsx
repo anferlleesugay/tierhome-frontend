@@ -299,7 +299,7 @@ export default function AdminListings() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Listing Moderation</h1>
-              <p className="text-xs text-gray-500">Review and approve landlord listings</p>
+              <p className="text-xs text-gray-500">Review and approve Property Owner listings</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

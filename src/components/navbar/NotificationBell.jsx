@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Bell, CheckCircle, XCircle, MessageCircle, Home, Ban, Building, ShieldCheck, Star } from "lucide-react";
+import { Bell, CheckCircle, XCircle, MessageCircle, Home, Ban, Building, ShieldCheck, Star, Wrench } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
@@ -17,6 +17,8 @@ const ICON_MAP = {
   new_message:           { icon: MessageCircle, color: "#2563eb" },
   listing_approved:      { icon: Home,          color: "#3d6b35" },
   listing_rejected:      { icon: Home,          color: "#ef4444" },
+  maintenance_request_submitted: { icon: Wrench, color: "#dc2626" },
+  maintenance_request_updated:   { icon: Wrench, color: "#2563eb" },
 };
 
 function timeAgo(dateStr) {

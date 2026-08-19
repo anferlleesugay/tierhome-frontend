@@ -1,9 +1,9 @@
 // FILE: src/pages/LandlordReports.jsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  FileText, Download, Loader, Calendar, Wallet, Building, AlertCircle, Receipt,
+  FileText, Download, Loader, Calendar, Wallet, Building, AlertCircle, Receipt, Mail, Check,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -56,6 +56,35 @@ export default function LandlordReports() {
   const [range, setRange] = useState("this_year");
   const [downloading, setDownloading] = useState(null);
   const [error, setError] = useState(null);
+
+  const [frequency, setFrequency] = useState("off");
+  const [savingFreq, setSavingFreq] = useState(false);
+  const [freqSaved, setFreqSaved] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    axios.get(`${API}/landlord/report-preference`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => setFrequency(res.data?.data?.report_frequency || "off"))
+      .catch(() => {});
+  }, [token]);
+
+  const handleFrequencyChange = async (newFreq) => {
+    setFrequency(newFreq);
+    setSavingFreq(true);
+    setFreqSaved(false);
+    try {
+      await axios.put(`${API}/landlord/report-preference`,
+        { report_frequency: newFreq },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setFreqSaved(true);
+      setTimeout(() => setFreqSaved(false), 2000);
+    } catch {
+      // silently keep the UI state; user can retry by changing again
+    } finally {
+      setSavingFreq(false);
+    }
+  };
 
   const handleDownload = async (report) => {
     setDownloading(report.key);
@@ -121,6 +150,35 @@ export default function LandlordReports() {
         <p className="text-[13px] text-gray-400">
           Download your records as CSV — opens directly in Excel, Google Sheets, or any spreadsheet app.
         </p>
+
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <Mail size={16} className="text-[#3d6b35]" />
+            <p className="text-[14px] font-semibold text-gray-800">Email me a summary automatically</p>
+            {freqSaved && (
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-green-600 ml-1">
+                <Check size={12} /> Saved
+              </span>
+            )}
+          </div>
+          <p className="text-[12px] text-gray-400 mb-3">
+            Revenue, expenses, net income, and pending items — sent straight to your inbox, no need to log in and check.
+          </p>
+          <div className="flex gap-2">
+            {["off", "weekly", "monthly"].map((f) => (
+              <button
+                key={f}
+                onClick={() => handleFrequencyChange(f)}
+                disabled={savingFreq}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition capitalize disabled:opacity-60 ${
+                  frequency === f ? "bg-[#3d6b35] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {REPORTS.map((report) => {

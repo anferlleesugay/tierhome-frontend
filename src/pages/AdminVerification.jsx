@@ -529,7 +529,7 @@ export default function AdminVerification() {
         <div className="w-full px-6 md:px-10 pt-6">
 
           {/* SEARCH + CONFIDENCE FILTER */}
-          {!loading && pending.length > 0 && (
+          {!loading && (
             <div className="flex items-center gap-3 mb-5 flex-wrap">
               <div className="relative flex-1 min-w-[220px] max-w-sm">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />

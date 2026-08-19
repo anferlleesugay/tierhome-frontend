@@ -135,16 +135,18 @@ export default function AdminRevenueByOwner() {
         )}
 
         {/* ── REVENUE BY MONTH + REVENUE BY PROPERTY ── */}
-        <div className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-[340px]">
+        <div className="flex flex-wrap gap-4 items-stretch">
+          <div className="flex-1 min-w-[340px] flex flex-col">
             <SectionHeader title="Revenue by Month" />
-            <Card className="mt-3">
+            <Card className="mt-3 flex-1 min-h-[280px] flex flex-col">
               {reportLoading ? (
-                <div className="h-[220px] bg-gray-50 rounded-xl animate-pulse" />
+                <div className="flex-1 bg-gray-50 rounded-xl animate-pulse" />
               ) : monthChartData.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-16">No paid revenue in the last 6 months.</p>
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-sm text-gray-400 text-center">No paid revenue in the last 6 months.</p>
+                </div>
               ) : (
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthChartData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="month" tick={{ fontSize: 11 }} />
@@ -157,18 +159,18 @@ export default function AdminRevenueByOwner() {
             </Card>
           </div>
 
-          <div className="flex-1 min-w-[340px]">
+          <div className="flex-1 min-w-[340px] flex flex-col">
             <SectionHeader title="Revenue by Property (Top 10)" />
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-3">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-3 flex-1 min-h-[280px] flex flex-col">
               {reportLoading ? (
-                <div className="p-6 space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+                <div className="p-6 space-y-3 flex-1">{[...Array(4)].map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />)}</div>
               ) : !report || report.revenue_by_property.length === 0 ? (
-                <div className="p-10 text-center">
-                  <Building size={32} className="text-gray-300 mx-auto mb-2" />
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <Building size={32} className="text-gray-300 mb-2" />
                   <p className="text-sm text-gray-400">No property revenue recorded yet.</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-50 max-h-[260px] overflow-y-auto">
+                <div className="divide-y divide-gray-50 overflow-y-auto flex-1">
                   {report.revenue_by_property.map((p, i) => (
                     <div key={p.id} className="flex items-center gap-3 px-5 py-3">
                       <span className="text-[11px] font-bold text-gray-300 w-4 shrink-0">{i + 1}</span>

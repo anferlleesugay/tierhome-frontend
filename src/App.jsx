@@ -38,6 +38,7 @@ import LandlordExpenses from "./pages/LandlordExpenses";
 import LandlordCalendar from "./pages/LandlordCalendar";
 import LandlordLayout from "./layouts/LandlordLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import TenantLayout from "./layouts/TenantLayout";
 import AdminRevenueByOwner from "./pages/AdminRevenueByOwner";
 import AdminAuditTrail from "./pages/AdminAuditTrail";
 import ListingAnalytics from "./pages/ListingAnalytics";
@@ -151,12 +152,12 @@ function App() {
           <Route path="/landlord-profile/:id" element={<LandlordProfile />} />
 
           {/* TENANT ROUTES */}
-          <Route path="/tenant/dashboard" element={<TenantOnly><TenantDashboard /></TenantOnly>} />
-          <Route path="/tenant/ranking" element={<TenantOnly><Ranking /></TenantOnly>} />
-          <Route path="/tenant/map" element={<TenantOnly><MapSearch /></TenantOnly>} />
-          <Route path="/tenant/saved" element={<TenantOnly><SavedListings /></TenantOnly>} />
-          <Route path="/tenant/messages" element={<TenantOnly><Messages /></TenantOnly>} />
-          <Route path="/tenant/reservations" element={<TenantOnly><Reservations /></TenantOnly>} />
+          <Route path="/tenant/dashboard" element={<TenantOnly><TenantLayout><TenantDashboard /></TenantLayout></TenantOnly>} />
+          <Route path="/tenant/ranking" element={<TenantOnly><TenantLayout><Ranking /></TenantLayout></TenantOnly>} />
+          <Route path="/tenant/map" element={<TenantOnly><TenantLayout><MapSearch /></TenantLayout></TenantOnly>} />
+          <Route path="/tenant/saved" element={<TenantOnly><TenantLayout><SavedListings /></TenantLayout></TenantOnly>} />
+          <Route path="/tenant/messages" element={<TenantOnly><TenantLayout><Messages /></TenantLayout></TenantOnly>} />
+          <Route path="/tenant/reservations" element={<TenantOnly><TenantLayout><Reservations /></TenantLayout></TenantOnly>} />
 
           {/* LANDLORD ROUTES — verified landlords only */}
           {/* "Dashboard" now folds into Analytics — old links/bookmarks still work via redirect */}

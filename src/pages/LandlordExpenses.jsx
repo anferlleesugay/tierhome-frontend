@@ -177,6 +177,11 @@ export default function LandlordExpenses() {
               <input type="number" step="0.01" min="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })}
                 placeholder="Amount (PHP)" required
                 className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition" />
+              {form.amount > 0 && (
+                <p className="text-xs text-[#3d6b35] font-semibold -mt-1.5">
+                  ₱{Number(form.amount).toLocaleString("en-PH")}
+                </p>
+              )}
 
               <input type="date" value={form.expense_date} onChange={(e) => setForm({ ...form, expense_date: e.target.value })} required
                 className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition" />

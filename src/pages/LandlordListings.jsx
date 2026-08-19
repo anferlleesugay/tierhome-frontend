@@ -703,6 +703,11 @@ export default function LandlordListings() {
                 <input type="number" name="reservation_fee" value={formData.reservation_fee} onChange={handleInputChange}
                   placeholder="e.g. 1500" min="0" step="0.01"
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3d6b35]" />
+                {formData.reservation_fee > 0 && (
+                  <p className="text-xs text-[#3d6b35] mt-1 font-semibold">
+                    ₱{Number(formData.reservation_fee).toLocaleString("en-PH")}
+                  </p>
+                )}
                 <p className="text-xs text-gray-400 mt-1">
                   This is a sandbox/test payment for demonstration purposes — no real money is processed.
                 </p>

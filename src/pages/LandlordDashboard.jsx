@@ -6,7 +6,7 @@ import axios from "axios";
 import {
   LayoutDashboard, Building, Calendar, RefreshCw,
   Wallet, MessageCircle, FileCheck, Clock,
-  ArrowRight, CheckCircle2, LogIn, Home, TrendingUp, TrendingDown,
+  ArrowRight, CheckCircle2, LogIn, Home, TrendingUp, TrendingDown, Wrench,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -158,7 +158,7 @@ export default function LandlordDashboard() {
                   <div className="space-y-3 py-2">
                     {[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />)}
                   </div>
-                ) : !widgets || (widgets.tasks.pending_reservations === 0 && widgets.tasks.pending_listing_approvals === 0 && widgets.tasks.unread_messages === 0) ? (
+                ) : !widgets || (widgets.tasks.pending_reservations === 0 && widgets.tasks.pending_listing_approvals === 0 && widgets.tasks.unread_messages === 0 && widgets.tasks.pending_maintenance === 0) ? (
                   <div className="text-center py-8">
                     <CheckCircle2 size={28} className="text-green-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-400">All caught up — nothing pending.</p>
@@ -197,6 +197,18 @@ export default function LandlordDashboard() {
                         </div>
                         <p className="flex-1 text-[13px] text-gray-700">
                           <span className="font-bold">{widgets.tasks.unread_messages}</span> unread message{widgets.tasks.unread_messages !== 1 ? "s" : ""} from tenants
+                        </p>
+                        <ArrowRight size={14} className="text-gray-300 shrink-0" />
+                      </button>
+                    )}
+                    {widgets.tasks.pending_maintenance > 0 && (
+                      <button onClick={() => navigate("/landlord/maintenance")}
+                        className="w-full flex items-center gap-3 py-3 hover:bg-gray-50 transition text-left -mx-4 px-4">
+                        <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                          <Wrench size={14} className="text-red-600" />
+                        </div>
+                        <p className="flex-1 text-[13px] text-gray-700">
+                          <span className="font-bold">{widgets.tasks.pending_maintenance}</span> maintenance request{widgets.tasks.pending_maintenance !== 1 ? "s" : ""} open
                         </p>
                         <ArrowRight size={14} className="text-gray-300 shrink-0" />
                       </button>

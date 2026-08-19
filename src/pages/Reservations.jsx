@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Calendar, MapPin, CheckCircle, XCircle, Clock,
-  AlertCircle, Loader, ArrowLeft, Ban, X, MessageCircle,
+  AlertCircle, Loader, ArrowLeft, Ban, X, MessageCircle, Wrench,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -29,6 +29,14 @@ export default function Reservations() {
   // ✅ Cancel reason modal state
   const [cancelTargetId, setCancelTargetId] = useState(null);
   const [cancelReason,   setCancelReason]   = useState("");
+
+  // ✅ Report an issue (maintenance request) modal state
+  const [maintenanceTarget, setMaintenanceTarget] = useState(null); // the reservation being reported for
+  const [maintenanceTitle, setMaintenanceTitle] = useState("");
+  const [maintenanceDesc,  setMaintenanceDesc]  = useState("");
+  const [maintenanceCategory, setMaintenanceCategory] = useState("");
+  const [submittingMaintenance, setSubmittingMaintenance] = useState(false);
+  const [maintenanceMsg, setMaintenanceMsg] = useState(null);
 
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -77,6 +85,27 @@ export default function Reservations() {
     if (listing?.images?.length > 0) return STORAGE + listing.images[0].image_path;
     if (listing?.image) return STORAGE + listing.image;
     return null;
+  };
+
+  const submitMaintenanceRequest = async () => {
+    if (!maintenanceTitle.trim() || !maintenanceDesc.trim() || !maintenanceTarget) return;
+    setSubmittingMaintenance(true);
+    setMaintenanceMsg(null);
+    try {
+      await axios.post(`${API}/maintenance-requests`, {
+        listing_id: maintenanceTarget.listing?.id,
+        title: maintenanceTitle,
+        description: maintenanceDesc,
+        category: maintenanceCategory || null,
+      }, { headers });
+      setMaintenanceMsg({ type: "success", text: "Your report has been sent to the Property Owner." });
+      setMaintenanceTitle(""); setMaintenanceDesc(""); setMaintenanceCategory("");
+      setTimeout(() => { setMaintenanceTarget(null); setMaintenanceMsg(null); }, 1800);
+    } catch (err) {
+      setMaintenanceMsg({ type: "error", text: err.response?.data?.message || "Failed to submit report." });
+    } finally {
+      setSubmittingMaintenance(false);
+    }
   };
 
   if (loading) return (
@@ -206,6 +235,12 @@ export default function Reservations() {
                     >
                       <MessageCircle size={14} /> Message Property Owner
                     </button>
+                    <button
+                      onClick={() => setMaintenanceTarget(res)}
+                      className="w-full mt-2 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition flex items-center justify-center gap-2"
+                    >
+                      <Wrench size={14} /> Report an Issue
+                    </button>
                   </>
                 )}
                 {res.status === "rejected" && (
@@ -274,6 +309,64 @@ export default function Reservations() {
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50">
                   {cancelling !== null ? <Loader size={14} className="animate-spin" /> : <Ban size={14} />}
                   Cancel It
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ REPORT AN ISSUE MODAL */}
+      {maintenanceTarget && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
+          onClick={() => { if (!submittingMaintenance) { setMaintenanceTarget(null); setMaintenanceMsg(null); } }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-bold text-gray-900 text-lg">Report an Issue</h2>
+              <button onClick={() => setMaintenanceTarget(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+                <X size={18} className="text-gray-600" />
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-3">
+              <p className="text-xs text-gray-400">{maintenanceTarget.listing?.title}</p>
+
+              {maintenanceMsg && (
+                <div className={`flex items-center gap-2 text-sm px-3 py-2 rounded-xl ${
+                  maintenanceMsg.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
+                }`}>
+                  {maintenanceMsg.type === "success" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                  {maintenanceMsg.text}
+                </div>
+              )}
+
+              <input type="text" value={maintenanceTitle} onChange={(e) => setMaintenanceTitle(e.target.value)}
+                placeholder="Brief title (e.g., Leaking faucet)"
+                className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition" />
+
+              <select value={maintenanceCategory} onChange={(e) => setMaintenanceCategory(e.target.value)}
+                className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition">
+                <option value="">Category (optional)</option>
+                <option value="Plumbing">Plumbing</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Appliance">Appliance</option>
+                <option value="Structural">Structural</option>
+                <option value="Other">Other</option>
+              </select>
+
+              <textarea value={maintenanceDesc} onChange={(e) => setMaintenanceDesc(e.target.value)} rows={4}
+                placeholder="Describe the issue in detail..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition resize-none" />
+
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => setMaintenanceTarget(null)}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                  Cancel
+                </button>
+                <button onClick={submitMaintenanceRequest} disabled={submittingMaintenance || !maintenanceTitle.trim() || !maintenanceDesc.trim()}
+                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                  {submittingMaintenance ? <Loader size={14} className="animate-spin" /> : "Submit Report"}
                 </button>
               </div>
             </div>

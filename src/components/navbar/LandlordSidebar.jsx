@@ -3,7 +3,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building, Calendar, MessageCircle,
-  User, ChevronLeft, ChevronRight, BarChart2, FileText,
+  User, ChevronLeft, ChevronRight, BarChart2, FileText, Wrench,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: "Analytics",    path: "/landlord/data-analytics", icon: BarChart2 },
   { label: "Listings",     path: "/landlord/listings",       icon: Building },
   { label: "Reservations", path: "/landlord/reservations",   icon: Calendar },
+  { label: "Maintenance",  path: "/landlord/maintenance",    icon: Wrench },
   { label: "Messages",     path: "/landlord/messages",       icon: MessageCircle },
   { label: "Reports",      path: "/landlord/reports",        icon: FileText },
   { label: "My Profile",   path: "/profile",                 icon: User },

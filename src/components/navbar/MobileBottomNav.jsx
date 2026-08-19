@@ -29,7 +29,7 @@ export default function MobileBottomNav() {
     ];
 
     if (role === "tenant") return [
-      { name: "Home",    path: "/",                    icon: Home,         auth: false },
+      { name: "Dashboard", path: "/tenant/dashboard",     icon: LayoutDashboard, auth: false },
       { name: "Browse",  path: "/browse",              icon: Search,       auth: false },
       { name: "Map",     path: "/tenant/map",          icon: MapPin,       auth: false },
       { name: "Messages",path: "/tenant/messages",     icon: MessageCircle,auth: false },
@@ -49,7 +49,7 @@ export default function MobileBottomNav() {
       { name: "Verify",    path: "/admin/verification", icon: User,           auth: false },
       { name: "Listings",  path: "/admin/listings",     icon: Building,       auth: false },
       { name: "Amenities", path: "/admin/amenities",    icon: Star,           auth: false },
-      { name: "Analytics", path: "/admin/analytics",    icon: TrendingUp,     auth: false },
+      { name: "Analytics", path: "/admin/analytics",    icon: Shield,         auth: false },
     ];
 
     return [

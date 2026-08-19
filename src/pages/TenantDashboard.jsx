@@ -4,36 +4,48 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
-  User, BadgeCheck, AlertCircle, Clock,
-  Heart, Calculator, MapPin, MessageCircle,
-  Calendar, ChevronRight, RefreshCw, LogOut,
-  ShieldAlert, Home,
+  LayoutDashboard, RefreshCw, Heart, Calendar, MessageCircle,
+  Calculator, MapPin, Home, ArrowRight, ChevronRight,
+  Clock, AlertCircle, ShieldAlert, BadgeCheck, User,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
-const STORAGE = `${import.meta.env.VITE_API_URL.replace('/api', '')}/storage/`;
+const STORAGE = `${API.replace('/api', '')}/storage/`;
 
-const formatPeso = (n) =>
-  "₱" + Number(n || 0).toLocaleString("en-PH", { minimumFractionDigits: 0 });
+const formatPeso = (n) => "₱" + Number(n || 0).toLocaleString("en-PH", { minimumFractionDigits: 0 });
 
-function StatCard({ icon: Icon, label, value, color, onClick }) {
+function timeGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+function SectionHeader({ title }) {
+  return <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide pt-2">{title}</p>;
+}
+
+function Card({ children }) {
+  return <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm h-full">{children}</div>;
+}
+
+function QuickStatCard({ icon: Icon, label, value, sublabel, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-gray-100 hover:shadow-md transition-all text-left w-full h-full"
+      className="rounded-2xl p-5 text-left w-full h-full transition hover:brightness-105 active:scale-[0.98]"
+      style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)` }}
     >
-      <div
-        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: color + "18" }}
-      >
-        <Icon size={20} color={color} />
+      <div className="flex items-center justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+          <Icon size={18} className="text-white" />
+        </div>
+        {onClick && <ArrowRight size={16} className="text-white/70" />}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-        <p className="text-[20px] font-bold text-gray-800 leading-tight">{value}</p>
-      </div>
-      <ChevronRight size={16} className="text-gray-300 shrink-0" />
+      <p className="text-[11px] font-semibold text-white/80 uppercase tracking-wide">{label}</p>
+      <p className="text-[26px] font-bold text-white leading-tight">{value}</p>
+      {sublabel && <p className="text-[11px] text-white/70 mt-0.5">{sublabel}</p>}
     </button>
   );
 }
@@ -82,13 +94,14 @@ function VerificationBanner({ status, navigate }) {
 
 export default function TenantDashboard() {
   const navigate = useNavigate();
-  const { user, token, logout, isVerified } = useAuth();
+  const { user, token, isVerified } = useAuth();
 
   const [stats, setStats] = useState({ saved: 0, reservations: 0, conversations: 0, ranking: null });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchStats = () => {
     if (!token) return;
+    setLoading(true);
     const headers = { Authorization: `Bearer ${token}` };
 
     Promise.allSettled([
@@ -97,7 +110,7 @@ export default function TenantDashboard() {
       axios.get(`${API}/conversations`, { headers }),
       axios.get(`${API}/my-ranking`, { headers }),
     ]).then(([saved, reservations, conversations, ranking]) => {
-      const savedData  = saved.value?.data?.data || [];
+      const savedData = saved.value?.data?.data || [];
       const resData    = reservations.value?.data?.data || [];
       const convData   = conversations.value?.data?.data || [];
       setStats({
@@ -107,169 +120,141 @@ export default function TenantDashboard() {
         ranking:       ranking.value?.data?.data ?? null,
       });
     }).finally(() => setLoading(false));
-  }, [token]);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
   };
+
+  useEffect(() => { fetchStats(); }, [token]);
 
   const verStatus = user?.verification_status || "unverified";
 
-  const avatarUrl = user?.profile_picture
-    ? STORAGE + user.profile_picture
-    : null;
-
-  const initials = [user?.first_name?.[0], user?.last_name?.[0]]
-    .filter(Boolean).join("").toUpperCase() || "T";
-
   return (
-    <div className="min-h-screen bg-[#f5f7f5] pb-28 w-full">
-      {/* HEADER */}
-      <div className="bg-white border-b border-gray-100 px-6 md:px-10 pt-6 pb-5">
-        <div className="w-full flex items-center gap-4">
-          {/* Avatar */}
-          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[#3d6b35]/10 flex items-center justify-center shrink-0">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-xl font-bold text-[#3d6b35]">{initials}</span>
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <p className="text-[12px] text-gray-400 font-medium">Welcome back,</p>
-            <h1 className="text-[20px] font-bold text-gray-900 truncate">
-              {user?.first_name} {user?.last_name}
+    <div className="min-h-screen bg-[#f5f7f5] pb-16 w-full">
+      {/* HERO BANNER */}
+      <div
+        className="w-full px-6 md:px-10 py-8"
+        style={{ background: "linear-gradient(135deg, #3d6b35 0%, #2d5a27 55%, #1c3818 100%)" }}
+      >
+        <div className="w-full flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-white/70 text-[13px] font-medium">
+              {timeGreeting()}, {user?.first_name || "there"}!
+            </p>
+            <h1 className="text-white text-[28px] font-bold mt-1 flex items-center gap-2.5">
+              <LayoutDashboard size={26} className="text-white/90" /> Dashboard
             </h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
+            <p className="text-white/60 text-[13px] mt-1 flex items-center gap-1.5">
               {isVerified ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
-                  <BadgeCheck size={13} /> Verified Tenant
-                </span>
+                <><BadgeCheck size={14} /> Verified Tenant</>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600">
-                  <Clock size={13} /> {verStatus === "pending" ? "Pending Verification" : "Unverified"}
-                </span>
+                <><Clock size={14} /> {verStatus === "pending" ? "Pending Verification" : "Unverified"}</>
               )}
-            </div>
+            </p>
           </div>
-
           <button
-            onClick={handleLogout}
-            className="p-2.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition shrink-0"
-            title="Logout"
+            onClick={fetchStats}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 transition text-white text-sm font-semibold"
           >
-            <LogOut size={18} />
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         </div>
       </div>
 
-      <div className="w-full px-6 md:px-10 mt-6 space-y-4">
-        {/* VERIFICATION BANNER — full width */}
+      <div className="w-full px-6 md:px-10 mt-6 space-y-6">
+
+        {/* VERIFICATION BANNER */}
         <VerificationBanner status={verStatus} navigate={navigate} />
 
-        {/* STATS GRID — horizontal on tablet+ instead of stacked */}
+        {/* ── QUICK STATS ── */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-[68px] bg-white rounded-2xl animate-pulse border border-gray-100" />
+              <div key={i} className="h-28 bg-white rounded-2xl animate-pulse border border-gray-100" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <StatCard
-              icon={Heart}
-              label="Saved Listings"
-              value={stats.saved}
-              color="#ef4444"
-              onClick={() => navigate("/tenant/saved")}
-            />
-            <StatCard
-              icon={Calendar}
-              label="Reservations"
-              value={stats.reservations}
-              color="#3d6b35"
-              onClick={() => navigate("/tenant/reservations")}
-            />
-            <StatCard
-              icon={MessageCircle}
-              label="Conversations"
-              value={stats.conversations}
-              color="#2563eb"
-              onClick={() => navigate("/tenant/messages")}
-            />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <QuickStatCard icon={Heart} label="Saved Listings" value={stats.saved}
+              color="#ef4444" onClick={() => navigate("/tenant/saved")} />
+            <QuickStatCard icon={Calendar} label="Reservations" value={stats.reservations}
+              color="#3d6b35" onClick={() => navigate("/tenant/reservations")} />
+            <QuickStatCard icon={MessageCircle} label="Conversations" value={stats.conversations}
+              color="#2563eb" onClick={() => navigate("/tenant/messages")} />
           </div>
         )}
 
-        {/* SECOND ROW — Account Info + Ranking, side by side on desktop */}
+        {/* ── ACCOUNT INFO + AFFORDABILITY RANKING ── */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {/* ACCOUNT INFO */}
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm h-full">
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Account Info</p>
-            <div className="space-y-2.5">
-              <div className="flex items-center gap-3">
-                <User size={15} className="text-gray-400 shrink-0" />
-                <span className="text-[13px] text-gray-600">{user?.email}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Home size={15} className="text-gray-400 shrink-0" />
-                <span className="text-[13px] text-gray-600 capitalize">Role: {user?.role}</span>
-              </div>
-              {user?.phone_number && (
-                <div className="flex items-center gap-3">
-                  <MapPin size={15} className="text-gray-400 shrink-0" />
-                  <span className="text-[13px] text-gray-600">{user.phone_number}</span>
+          <div>
+            <SectionHeader title="Account Info" />
+            <div className="mt-3">
+              <Card>
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-3">
+                    <User size={15} className="text-gray-400 shrink-0" />
+                    <span className="text-[13px] text-gray-600">{user?.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Home size={15} className="text-gray-400 shrink-0" />
+                    <span className="text-[13px] text-gray-600 capitalize">Role: {user?.role}</span>
+                  </div>
+                  {user?.phone_number && (
+                    <div className="flex items-center gap-3">
+                      <MapPin size={15} className="text-gray-400 shrink-0" />
+                      <span className="text-[13px] text-gray-600">{user.phone_number}</span>
+                    </div>
+                  )}
                 </div>
-              )}
+              </Card>
             </div>
           </div>
 
-          {/* RANKING SUMMARY */}
-          {stats.ranking ? (
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm h-full">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
-                  Last Affordability Ranking
-                </p>
-                <button
-                  onClick={() => navigate("/tenant/ranking")}
-                  className="text-[11px] font-semibold text-[#3d6b35] flex items-center gap-1"
-                >
-                  Recalculate <ChevronRight size={12} />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Gross Income", val: stats.ranking.gross_income },
-                  { label: "Disposable", val: stats.ranking.disposable_income },
-                  { label: "Max Rent (30%)", val: stats.ranking.recommended_max_rent },
-                  { label: "Savings", val: stats.ranking.available_savings },
-                ].map(({ label, val }) => (
-                  <div key={label} className="bg-[#f5f7f5] rounded-xl p-3">
-                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">{label}</p>
-                    <p className="text-[15px] font-bold text-gray-800">{formatPeso(val)}</p>
+          <div>
+            <SectionHeader title="Last Affordability Ranking" />
+            <div className="mt-3">
+              <Card>
+                {stats.ranking ? (
+                  <>
+                    <div className="flex items-center justify-end mb-3">
+                      <button
+                        onClick={() => navigate("/tenant/ranking")}
+                        className="text-[11px] font-semibold text-[#3d6b35] flex items-center gap-1"
+                      >
+                        Recalculate <ChevronRight size={12} />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { label: "Gross Income", val: stats.ranking.gross_income },
+                        { label: "Disposable", val: stats.ranking.disposable_income },
+                        { label: "Max Rent (30%)", val: stats.ranking.recommended_max_rent },
+                        { label: "Savings", val: stats.ranking.available_savings },
+                      ].map(({ label, val }) => (
+                        <div key={label} className="bg-[#f5f7f5] rounded-xl p-3">
+                          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">{label}</p>
+                          <p className="text-[15px] font-bold text-gray-800">{formatPeso(val)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center py-4">
+                    <Calculator size={24} className="text-gray-300 mb-2" />
+                    <p className="text-[12px] text-gray-400 mb-2">No affordability ranking yet.</p>
+                    <button
+                      onClick={() => navigate("/tenant/ranking")}
+                      className="text-[11px] font-semibold text-[#3d6b35] flex items-center gap-1"
+                    >
+                      Calculate now <ChevronRight size={12} />
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </Card>
             </div>
-          ) : (
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm h-full flex flex-col items-center justify-center text-center">
-              <Calculator size={24} className="text-gray-300 mb-2" />
-              <p className="text-[12px] text-gray-400 mb-2">No affordability ranking yet.</p>
-              <button
-                onClick={() => navigate("/tenant/ranking")}
-                className="text-[11px] font-semibold text-[#3d6b35] flex items-center gap-1"
-              >
-                Calculate now <ChevronRight size={12} />
-              </button>
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* QUICK ACTIONS — 4 across on desktop */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Quick Actions</p>
+        {/* ── QUICK ACTIONS ── */}
+        <SectionHeader title="Quick Actions" />
+        <Card>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
               { label: "Browse Listings", icon: Home, path: "/browse", color: "#3d6b35" },
@@ -294,7 +279,7 @@ export default function TenantDashboard() {
                 </button>
               ))}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

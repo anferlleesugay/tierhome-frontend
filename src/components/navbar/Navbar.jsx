@@ -218,17 +218,11 @@ export default function Navbar() {
                       <DropdownItem label="My Profile" to="/profile" onClose={() => setOpenDropdown(false)} />
                     </div>
 
-                    {/* Tenant links */}
-                    {role === "tenant" && (
+                    {/* Tenant — dashboard/tool links live in the left sidebar now; only
+                         Verify Identity isn't in the sidebar (it's contextual), same as landlord below */}
+                    {role === "tenant" && !isVerified && (
                       <div className="py-1">
-                        <DropdownItem label="Browse Listings"       to="/browse"              onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="Map Search"            to="/tenant/map"          onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="Dashboard"             to="/tenant/dashboard"    onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="Saved Listings"        to="/tenant/saved"        onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="My Reservations"       to="/tenant/reservations" onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="Messages"              to="/tenant/messages"     onClose={() => setOpenDropdown(false)} />
-                        <DropdownItem label="Affordability Ranking" to="/tenant/ranking"      onClose={() => setOpenDropdown(false)} />
-                        {!isVerified && <DropdownItem label="Verify Identity" to="/verify"   onClose={() => setOpenDropdown(false)} />}
+                        <DropdownItem label="Verify Identity" to="/verify" onClose={() => setOpenDropdown(false)} />
                       </div>
                     )}
 

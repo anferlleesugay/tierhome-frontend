@@ -25,7 +25,7 @@ export default function LandlordSidebar({ collapsed, onToggle }) {
 
   return (
     <aside
-      className={`hidden lg:flex flex-col shrink-0 bg-white border-r border-gray-100 min-h-screen sticky top-0 transition-all duration-200 ${
+      className={`hidden md:flex flex-col shrink-0 bg-white border-r border-gray-100 min-h-screen sticky top-0 transition-all duration-200 ${
         collapsed ? "w-[76px]" : "w-[220px]"
       }`}
     >

@@ -106,6 +106,7 @@ function App() {
   const protectBrowse = () => {
     if (isLoggedIn && role === "landlord") return <Navigate to="/landlord/analytics" replace />;
     if (isLoggedIn && role === "admin") return <Navigate to="/admin/dashboard" replace />;
+    if (isLoggedIn && role === "tenant") return <TenantLayout><Browse /></TenantLayout>;
     return <Browse />;
   };
 

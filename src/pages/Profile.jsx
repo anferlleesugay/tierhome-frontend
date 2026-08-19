@@ -194,352 +194,201 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-10 w-full">
-      <div className={role === "admin" ? "max-w-2xl mx-auto px-4 md:px-0 py-8" : "w-full px-6 md:px-10 py-8"}>
+      <div className="max-w-2xl mx-auto px-4 md:px-0 py-8">
 
-        {/* Admin gets a centered single-column layout — it has far less content
-            (no deactivation card, no listings) than tenant/landlord, so the wide
-            two-column grid used below just left a broken wall of empty space. */}
-        {role === "admin" ? (
-          <div className="space-y-4">
-            {/* PROFILE CARD */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="h-24 bg-gradient-to-r from-[#3d6b35] to-[#2d5a27]" />
-              <div className="px-6 pb-6">
-                <div className="flex items-end justify-between -mt-12 mb-4">
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-green-100 flex items-center justify-center">
-                      {avatarUrl ? (
-                        <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-3xl font-bold text-[#3d6b35]">{initials}</span>
-                      )}
-                      {uploading && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
-                          <Loader size={20} className="text-white animate-spin" />
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 w-8 h-8 bg-[#3d6b35] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2d5525] transition"
-                    >
-                      <Camera size={14} />
-                    </button>
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureChange} />
-                  </div>
-                  <div className="flex gap-2 mb-1">
-                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${roleColor}`}>
-                      Admin
-                    </span>
-                    {isVerified && (
-                      <span className="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">
-                        <BadgeCheck size={12} /> Verified
-                      </span>
+        {/* Single centered column for every role — matches the Property Owner
+            profile page's proportions. The old wide two-column grid left a huge
+            dead-space wall for any role with less content (admin had none on the
+            left at all; even tenant looked unbalanced once the sidebar was added). */}
+        <div className="space-y-4">
+          {/* PROFILE CARD */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="h-24 bg-gradient-to-r from-[#3d6b35] to-[#2d5a27]" />
+            <div className="px-6 pb-6">
+              <div className="flex items-end justify-between -mt-12 mb-4">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-green-100 flex items-center justify-center">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl font-bold text-[#3d6b35]">{initials}</span>
+                    )}
+                    {uploading && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                        <Loader size={20} className="text-white animate-spin" />
+                      </div>
                     )}
                   </div>
-                </div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  {profile?.first_name} {profile?.middle_initial ? profile.middle_initial + ". " : ""}{profile?.last_name}
-                </h1>
-                <p className="text-sm text-gray-500">{profile?.email}</p>
-                {profile?.phone_number && (
-                  <p className="text-sm text-gray-500">{profile.phone_number}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Phone */}
-            <Section
-              icon={Phone}
-              title="Phone Number"
-              value={profile?.phone_number || "Not set"}
-              isActive={activeSection === "phone"}
-              onEdit={() => setActiveSection(activeSection === "phone" ? null : "phone")}
-            >
-              {phoneMsg && <Msg type={phoneMsg.type} text={phoneMsg.text} />}
-              <form onSubmit={handleUpdatePhone} className="space-y-3 mt-3">
-                <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09XXXXXXXXX" maxLength={11} className={inputClass} />
-                <div className="flex gap-2">
-                  <button type="submit" disabled={phoneLoading} className={btnClass}>
-                    {phoneLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-[#3d6b35] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2d5525] transition"
+                  >
+                    <Camera size={14} />
                   </button>
-                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureChange} />
                 </div>
-              </form>
-            </Section>
-
-            {/* Email */}
-            <Section
-              icon={Mail}
-              title="Email Address"
-              value={profile?.email}
-              isActive={activeSection === "email"}
-              onEdit={() => setActiveSection(activeSection === "email" ? null : "email")}
-            >
-              {emailMsg && <Msg type={emailMsg.type} text={emailMsg.text} />}
-              <form onSubmit={handleUpdateEmail} className="space-y-3 mt-3">
-                <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email address" className={inputClass} required />
-                <input type="password" value={emailPass} onChange={(e) => setEmailPass(e.target.value)} placeholder="Current password to confirm" className={inputClass} required />
-                <div className="flex gap-2">
-                  <button type="submit" disabled={emailLoading} className={btnClass}>
-                    {emailLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
-                  </button>
-                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
-                </div>
-              </form>
-            </Section>
-
-            {/* Password */}
-            <Section
-              icon={Lock}
-              title="Password"
-              value="••••••••"
-              isActive={activeSection === "password"}
-              onEdit={() => setActiveSection(activeSection === "password" ? null : "password")}
-            >
-              {passMsg && <Msg type={passMsg.type} text={passMsg.text} />}
-              <form onSubmit={handleUpdatePassword} className="space-y-3 mt-3">
-                <div className="relative">
-                  <input type={showCurrent ? "text" : "password"} value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} placeholder="Current password" className={inputClass} required />
-                  <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-                <div className="relative">
-                  <input type={showNew ? "text" : "password"} value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="New password (min 8 chars)" className={inputClass} required />
-                  <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-                <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Confirm new password" className={inputClass} required />
-                <div className="flex gap-2">
-                  <button type="submit" disabled={passLoading} className={btnClass}>
-                    {passLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
-                  </button>
-                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
-                </div>
-              </form>
-            </Section>
-          </div>
-        ) : (
-        <>
-        {/* Two-column on desktop: profile card + status on the left, editable fields on the right */}
-        <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6 items-start">
-
-          {/* ── LEFT COLUMN ───────────────────────────── */}
-          <div className="space-y-4">
-            {/* PROFILE CARD */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              {/* Cover */}
-              <div className="h-24 bg-gradient-to-r from-[#3d6b35] to-[#2d5a27]" />
-
-              {/* Avatar + Info */}
-              <div className="px-6 pb-6">
-                <div className="flex items-end justify-between -mt-12 mb-4">
-                  {/* Avatar */}
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-green-100 flex items-center justify-center">
-                      {avatarUrl ? (
-                        <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-3xl font-bold text-[#3d6b35]">{initials}</span>
-                      )}
-                      {uploading && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
-                          <Loader size={20} className="text-white animate-spin" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Camera button */}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 w-8 h-8 bg-[#3d6b35] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2d5525] transition"
-                    >
-                      <Camera size={14} />
-                    </button>
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureChange} />
-                  </div>
-
-                  {/* Badges */}
-                  <div className="flex gap-2 mb-1">
-                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${roleColor}`}>
-                      {role === "landlord" ? "Property Owner" : role?.charAt(0).toUpperCase() + role?.slice(1)}
+                <div className="flex gap-2 mb-1">
+                  <span className={`text-xs px-3 py-1 rounded-full font-semibold ${roleColor}`}>
+                    {role === "landlord" ? "Property Owner" : role?.charAt(0).toUpperCase() + role?.slice(1)}
+                  </span>
+                  {isVerified && (
+                    <span className="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">
+                      <BadgeCheck size={12} /> Verified
                     </span>
-                    {isVerified && (
-                      <span className="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">
-                        <BadgeCheck size={12} /> Verified
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Name */}
-                <h1 className="text-xl font-bold text-gray-900">
-                  {profile?.first_name} {profile?.middle_initial ? profile.middle_initial + ". " : ""}{profile?.last_name}
-                </h1>
-                <p className="text-sm text-gray-500">{profile?.email}</p>
-                {profile?.phone_number && (
-                  <p className="text-sm text-gray-500">{profile.phone_number}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Verification status */}
-            {!isVerified && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                <p className="font-semibold text-amber-800 text-sm">Identity Not Verified</p>
-                <p className="text-xs text-amber-600 mt-0.5 mb-3">Verify your identity to unlock all features</p>
-                <button
-                  onClick={() => navigate("/verify")}
-                  className="text-xs font-bold px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition"
-                >
-                  Verify Now
-                </button>
-              </div>
-            )}
-
-            {/* ✅ ACCOUNT DEACTIVATION */}
-            {role !== "admin" && (
-              <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
-                <div className="px-5 py-4">
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
-                      <UserX size={16} className="text-red-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">Deactivate Account</p>
-                      <p className="text-xs text-gray-400">Requires admin approval before taking effect</p>
-                    </div>
-                  </div>
-
-                  {deactivationRequest?.status === "pending" ? (
-                    <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3.5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock size={14} className="text-amber-600 shrink-0" />
-                        <p className="text-xs text-amber-700 font-medium">Your deactivation request is pending admin review.</p>
-                      </div>
-                      <button
-                        onClick={handleCancelDeactivation}
-                        disabled={deactivating}
-                        className="text-xs font-bold text-amber-700 hover:underline disabled:opacity-50"
-                      >
-                        {deactivating ? "..." : "Cancel Request"}
-                      </button>
-                    </div>
-                  ) : deactivationRequest?.status === "rejected" ? (
-                    <div className="mt-3 space-y-2">
-                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5">
-                        <p className="text-xs text-gray-600">
-                          Your previous request was declined{deactivationRequest.admin_note ? `: "${deactivationRequest.admin_note}"` : "."}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setShowDeactivateModal(true)}
-                        className="text-xs font-bold text-red-500 hover:underline"
-                      >
-                        Submit a new request
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowDeactivateModal(true)}
-                      className="mt-3 text-xs font-bold px-4 py-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition"
-                    >
-                      Request Deactivation
-                    </button>
                   )}
                 </div>
               </div>
-            )}
+              <h1 className="text-xl font-bold text-gray-900">
+                {profile?.first_name} {profile?.middle_initial ? profile.middle_initial + ". " : ""}{profile?.last_name}
+              </h1>
+              <p className="text-sm text-gray-500">{profile?.email}</p>
+              {profile?.phone_number && (
+                <p className="text-sm text-gray-500">{profile.phone_number}</p>
+              )}
+            </div>
           </div>
 
-          {/* ── RIGHT COLUMN — EDIT SECTIONS ─────────────── */}
-          <div className="space-y-4">
+          {/* Verification status */}
+          {!isVerified && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+              <p className="font-semibold text-amber-800 text-sm">Identity Not Verified</p>
+              <p className="text-xs text-amber-600 mt-0.5 mb-3">Verify your identity to unlock all features</p>
+              <button
+                onClick={() => navigate("/verify")}
+                className="text-xs font-bold px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition"
+              >
+                Verify Now
+              </button>
+            </div>
+          )}
 
-            {/* Phone */}
-            <Section
-              icon={Phone}
-              title="Phone Number"
-              value={profile?.phone_number || "Not set"}
-              isActive={activeSection === "phone"}
-              onEdit={() => setActiveSection(activeSection === "phone" ? null : "phone")}
-            >
-              {phoneMsg && <Msg type={phoneMsg.type} text={phoneMsg.text} />}
-              <form onSubmit={handleUpdatePhone} className="space-y-3 mt-3">
-                <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="09XXXXXXXXX"
-                  maxLength={11}
-                  className={inputClass}
-                />
-                <div className="flex gap-2">
-                  <button type="submit" disabled={phoneLoading} className={btnClass}>
-                    {phoneLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
-                  </button>
-                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
-                </div>
-              </form>
-            </Section>
+          {/* Phone */}
+          <Section
+            icon={Phone}
+            title="Phone Number"
+            value={profile?.phone_number || "Not set"}
+            isActive={activeSection === "phone"}
+            onEdit={() => setActiveSection(activeSection === "phone" ? null : "phone")}
+          >
+            {phoneMsg && <Msg type={phoneMsg.type} text={phoneMsg.text} />}
+            <form onSubmit={handleUpdatePhone} className="space-y-3 mt-3">
+              <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09XXXXXXXXX" maxLength={11} className={inputClass} />
+              <div className="flex gap-2">
+                <button type="submit" disabled={phoneLoading} className={btnClass}>
+                  {phoneLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                </button>
+                <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+              </div>
+            </form>
+          </Section>
 
-            {/* Email */}
-            <Section
-              icon={Mail}
-              title="Email Address"
-              value={profile?.email}
-              isActive={activeSection === "email"}
-              onEdit={() => setActiveSection(activeSection === "email" ? null : "email")}
-            >
-              {emailMsg && <Msg type={emailMsg.type} text={emailMsg.text} />}
-              <form onSubmit={handleUpdateEmail} className="space-y-3 mt-3">
-                <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email address" className={inputClass} required />
-                <input type="password" value={emailPass} onChange={(e) => setEmailPass(e.target.value)} placeholder="Current password to confirm" className={inputClass} required />
-                <div className="flex gap-2">
-                  <button type="submit" disabled={emailLoading} className={btnClass}>
-                    {emailLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
-                  </button>
-                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
-                </div>
-              </form>
-            </Section>
+          {/* Email */}
+          <Section
+            icon={Mail}
+            title="Email Address"
+            value={profile?.email}
+            isActive={activeSection === "email"}
+            onEdit={() => setActiveSection(activeSection === "email" ? null : "email")}
+          >
+            {emailMsg && <Msg type={emailMsg.type} text={emailMsg.text} />}
+            <form onSubmit={handleUpdateEmail} className="space-y-3 mt-3">
+              <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email address" className={inputClass} required />
+              <input type="password" value={emailPass} onChange={(e) => setEmailPass(e.target.value)} placeholder="Current password to confirm" className={inputClass} required />
+              <div className="flex gap-2">
+                <button type="submit" disabled={emailLoading} className={btnClass}>
+                  {emailLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                </button>
+                <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+              </div>
+            </form>
+          </Section>
 
-            {/* Password */}
-            <Section
-              icon={Lock}
-              title="Password"
-              value="••••••••"
-              isActive={activeSection === "password"}
-              onEdit={() => setActiveSection(activeSection === "password" ? null : "password")}
-            >
-              {passMsg && <Msg type={passMsg.type} text={passMsg.text} />}
-              <form onSubmit={handleUpdatePassword} className="space-y-3 mt-3">
-                <div className="relative">
-                  <input type={showCurrent ? "text" : "password"} value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} placeholder="Current password" className={inputClass} required />
-                  <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
+          {/* Password */}
+          <Section
+            icon={Lock}
+            title="Password"
+            value="••••••••"
+            isActive={activeSection === "password"}
+            onEdit={() => setActiveSection(activeSection === "password" ? null : "password")}
+          >
+            {passMsg && <Msg type={passMsg.type} text={passMsg.text} />}
+            <form onSubmit={handleUpdatePassword} className="space-y-3 mt-3">
+              <div className="relative">
+                <input type={showCurrent ? "text" : "password"} value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} placeholder="Current password" className={inputClass} required />
+                <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+              <div className="relative">
+                <input type={showNew ? "text" : "password"} value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="New password (min 8 chars)" className={inputClass} required />
+                <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+              <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Confirm new password" className={inputClass} required />
+              <div className="flex gap-2">
+                <button type="submit" disabled={passLoading} className={btnClass}>
+                  {passLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
+                </button>
+                <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
+              </div>
+            </form>
+          </Section>
+
+          {/* Account deactivation — everyone except admin */}
+          {role !== "admin" && (
+            <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-4">
+                <div className="flex items-center gap-3 mb-1">
+                  <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                    <UserX size={16} className="text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Deactivate Account</p>
+                    <p className="text-xs text-gray-400">Requires admin approval before taking effect</p>
+                  </div>
                 </div>
-                <div className="relative">
-                  <input type={showNew ? "text" : "password"} value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="New password (min 8 chars)" className={inputClass} required />
-                  <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+
+                {deactivationRequest?.status === "pending" ? (
+                  <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3.5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock size={14} className="text-amber-600 shrink-0" />
+                      <p className="text-xs text-amber-700 font-medium">Your deactivation request is pending admin review.</p>
+                    </div>
+                    <button
+                      onClick={handleCancelDeactivation}
+                      disabled={deactivating}
+                      className="text-xs font-bold text-amber-700 hover:underline disabled:opacity-50"
+                    >
+                      {deactivating ? "..." : "Cancel Request"}
+                    </button>
+                  </div>
+                ) : deactivationRequest?.status === "rejected" ? (
+                  <div className="mt-3 space-y-2">
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5">
+                      <p className="text-xs text-gray-600">
+                        Your previous request was declined{deactivationRequest.admin_note ? `: "${deactivationRequest.admin_note}"` : "."}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowDeactivateModal(true)}
+                      className="text-xs font-bold text-red-500 hover:underline"
+                    >
+                      Submit a new request
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowDeactivateModal(true)}
+                    className="mt-3 text-xs font-bold px-4 py-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition"
+                  >
+                    Request Deactivation
                   </button>
-                </div>
-                <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Confirm new password" className={inputClass} required />
-                <div className="flex gap-2">
-                  <button type="submit" disabled={passLoading} className={btnClass}>
-                    {passLoading ? <Loader size={14} className="animate-spin" /> : "Save"}
-                  </button>
-                  <button type="button" onClick={() => setActiveSection(null)} className={cancelClass}>Cancel</button>
-                </div>
-              </form>
-            </Section>
-          </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-        </>
-        )}
       </div>
 
       {/* ✅ DEACTIVATION CONFIRMATION MODAL */}

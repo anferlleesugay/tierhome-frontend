@@ -91,7 +91,6 @@ export default function LandlordAnalytics() {
     ? buildForecastChartData(data.reservations_by_month, data.forecast?.reservations_next_3_months, "Reservations")
     : [];
 
-  // Reservation status breakdown, derived from summary + per-listing performance
   const reservationStatusPie = (() => {
     if (!data) return [];
     const approved = (data.listing_performance || []).reduce((sum, l) => sum + (l.approved_reservations || 0), 0);
@@ -110,7 +109,7 @@ export default function LandlordAnalytics() {
       <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-4 sticky top-0 z-20">
         <div className="w-full flex items-center justify-between">
           <h1 className="text-[22px] font-bold text-gray-900 flex items-center gap-2">
-            <BarChart2 size={24} color="#3d6b35" /> My Analytics
+            <BarChart2 size={24} color="#3d6b35" /> Analytics
           </h1>
           <button onClick={fetchAnalytics} className="p-2 rounded-xl hover:bg-gray-100 transition text-gray-400">
             <RefreshCw size={18} className={loading ? "animate-spin" : ""} />

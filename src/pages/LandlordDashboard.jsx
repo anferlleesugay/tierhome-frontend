@@ -4,301 +4,243 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
-  LayoutDashboard, Building, Calendar, MessageCircle,
-  ChevronRight, LogOut, BadgeCheck, Clock,
-  Eye, CheckCircle, XCircle, AlertCircle, User, Camera, BarChart2,
+  LayoutDashboard, Building, Calendar, RefreshCw,
+  Wallet, MessageCircle, FileCheck, Clock,
+  ArrowRight, CheckCircle2, LogIn, Home, TrendingUp, TrendingDown,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
-const STORAGE = `${import.meta.env.VITE_API_URL.replace("/api", "")}/storage/`;
 
-const formatDate = (d) =>
-  new Date(d).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+const formatPeso = (n) => "₱" + Number(n || 0).toLocaleString("en-PH");
 
-const formatPeso = (n) =>
-  "₱" + Number(n || 0).toLocaleString("en-PH");
-
-const STATUS_CONFIG = {
-  pending:   { label: "Pending",   color: "#d97706", bg: "#fef3c7", icon: Clock },
-  approved:  { label: "Approved",  color: "#3d6b35", bg: "#dcfce7", icon: CheckCircle },
-  rejected:  { label: "Rejected",  color: "#ef4444", bg: "#fee2e2", icon: XCircle },
-  cancelled: { label: "Cancelled", color: "#6b7280", bg: "#f3f4f6", icon: XCircle },
-};
-
-function StatusBadge({ status }) {
-  const c = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
-  const Icon = c.icon;
-  return (
-    <span
-      className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-      style={{ color: c.color, background: c.bg }}
-    >
-      <Icon size={10} /> {c.label}
-    </span>
-  );
+function timeGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
 }
 
-function StatCard({ icon: Icon, label, value, color, onClick }) {
+function timeAgo(dateStr) {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString("en-PH", { month: "short", day: "numeric" });
+}
+
+function SectionHeader({ title }) {
+  return <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide pt-2">{title}</p>;
+}
+
+function Card({ children }) {
+  return <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm h-full">{children}</div>;
+}
+
+// delta = month-over-month % change — Client 2 specifically asked for this comparison
+function QuickStatCard({ icon: Icon, label, value, sublabel, delta, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-gray-100 hover:shadow-md transition-all text-left w-full"
+      className="rounded-2xl p-5 text-left w-full h-full transition hover:brightness-105 active:scale-[0.98]"
+      style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)` }}
     >
-      <div
-        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: color + "18" }}
-      >
-        <Icon size={20} color={color} />
+      <div className="flex items-center justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+          <Icon size={18} className="text-white" />
+        </div>
+        {onClick && <ArrowRight size={16} className="text-white/70" />}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-        <p className="text-[22px] font-bold text-gray-800">{value}</p>
+      <p className="text-[11px] font-semibold text-white/80 uppercase tracking-wide">{label}</p>
+      <p className="text-[26px] font-bold text-white leading-tight">{value}</p>
+      <div className="flex items-center gap-2 mt-0.5 h-4">
+        {sublabel && <p className="text-[11px] text-white/70">{sublabel}</p>}
+        {delta !== null && delta !== undefined && (
+          <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${delta >= 0 ? "text-green-200" : "text-red-200"}`}>
+            {delta >= 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+            {Math.abs(delta)}% vs last month
+          </span>
+        )}
       </div>
-      <ChevronRight size={16} className="text-gray-300 shrink-0" />
     </button>
   );
 }
 
 export default function LandlordDashboard() {
   const navigate = useNavigate();
-  const { user, token, logout, isVerified, updateUser } = useAuth();
+  const { token, user } = useAuth();
 
-  const [listings, setListings] = useState([]);
-  const [reservations, setReservations] = useState([]);
-  const [conversations, setConversations] = useState([]);
+  const [widgets, setWidgets] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-  useEffect(() => {
-    if (!token) return;
-    const headers = { Authorization: `Bearer ${token}` };
-    Promise.allSettled([
-      axios.get(`${API}/landlord-reservations`, { headers }),
-      axios.get(`${API}/conversations`, { headers }),
-      axios.get(`${API}/my-listings`, { headers }),
-    ]).then(([res, conv, listings]) => {
-      const resList = res.value?.data?.data?.data || [];
-      setReservations(resList);
-      const myListings = listings.value?.data?.data?.data || listings.value?.data?.data || [];
-      setListings(Array.isArray(myListings) ? myListings : []);
-      setConversations(conv.value?.data?.data || []);
-    }).finally(() => setLoading(false));
-  }, [token]);
-
-  const handleLogout = () => { logout(); navigate("/"); };
-
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingAvatar(true);
+  const fetchWidgets = async () => {
+    setLoading(true);
     try {
-      const fd = new FormData();
-      fd.append("profile_picture", file);
-      const res = await axios.post(`${API}/profile/picture`, fd, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+      const res = await axios.get(`${API}/landlord/dashboard-widgets`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const newPicture = res.data?.data?.profile_picture || res.data?.profile_picture;
-      if (newPicture) updateUser({ profile_picture: newPicture });
-    } catch (err) {
-      console.error("Avatar upload failed:", err);
+      setWidgets(res.data?.data || null);
+    } catch {
+      setWidgets(null);
     } finally {
-      setUploadingAvatar(false);
+      setLoading(false);
     }
   };
 
-  const avatarUrl = user?.profile_picture ? STORAGE + user.profile_picture : null;
-  const initials = [user?.first_name?.[0], user?.last_name?.[0]].filter(Boolean).join("").toUpperCase() || "L";
-
-  const pendingCount = reservations.filter((r) => r.status === "pending").length;
-  const unreadConv = conversations.length;
-
-  const verStatus = user?.verification_status || "unverified";
+  useEffect(() => { if (token) fetchWidgets(); }, [token]);
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] pb-28">
-      {/* HEADER */}
-      <div className="bg-white border-b border-gray-100 px-4 pt-6 pb-5">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-4">
-
-            {/* AVATAR WITH UPLOAD */}
-            <label className="relative w-16 h-16 rounded-2xl overflow-hidden bg-[#3d6b35]/10 flex items-center justify-center shrink-0 cursor-pointer group">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-xl font-bold text-[#3d6b35]">{initials}</span>
-              )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                {uploadingAvatar
-                  ? <span className="text-white text-[10px] font-bold">...</span>
-                  : <Camera size={16} className="text-white" />
-                }
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
-                disabled={uploadingAvatar}
-              />
-            </label>
-
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] text-gray-400 font-medium">Property Owner Dashboard</p>
-              <h1 className="text-[20px] font-bold text-gray-900 truncate">
-                {user?.first_name} {user?.last_name}
-              </h1>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                {isVerified ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
-                    <BadgeCheck size={13} /> Verified Property Owner
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600">
-                    <Clock size={13} /> {verStatus === "pending" ? "Pending Verification" : "Unverified"}
-                  </span>
-                )}
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="p-2.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition"
-              title="Logout"
-            >
-              <LogOut size={18} />
-            </button>
+    <div className="min-h-screen bg-[#f5f7f5] pb-16 w-full">
+      {/* HERO BANNER */}
+      <div
+        className="w-full px-6 md:px-10 py-8"
+        style={{ background: "linear-gradient(135deg, #3d6b35 0%, #2d5a27 55%, #1c3818 100%)" }}
+      >
+        <div className="w-full flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-white/70 text-[13px] font-medium">
+              {timeGreeting()}, {user?.first_name || "there"}!
+            </p>
+            <h1 className="text-white text-[28px] font-bold mt-1 flex items-center gap-2.5">
+              <LayoutDashboard size={26} className="text-white/90" /> Dashboard
+            </h1>
+            <p className="text-white/60 text-[13px] mt-1">Here's what's happening with your properties today.</p>
           </div>
+          <button
+            onClick={fetchWidgets}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 transition text-white text-sm font-semibold"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 mt-5 space-y-4">
+      <div className="w-full px-6 md:px-10 mt-6 space-y-6">
 
-        {/* Verification Banner */}
-        {!isVerified && (
-          <div className="flex items-center gap-3 p-4 rounded-2xl border bg-blue-50 border-blue-200">
-            <AlertCircle size={18} className="text-blue-600 shrink-0" />
-            <p className="text-sm text-gray-700 flex-1">Complete identity verification to publish listings.</p>
-            <button
-              onClick={() => navigate("/verify")}
-              className="text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition shrink-0"
-            >
-              Verify Now
-            </button>
-          </div>
-        )}
-
-        {/* Account Info */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Account Info</p>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <User size={14} className="text-gray-400 shrink-0" />
-              <span className="text-[13px] text-gray-600">{user?.email}</span>
-            </div>
-            {user?.phone_number && (
-              <div className="flex items-center gap-3">
-                <Building size={14} className="text-gray-400 shrink-0" />
-                <span className="text-[13px] text-gray-600">{user.phone_number}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Stats */}
+        {/* ── QUICK STATS ── matches Client 2's exact spec: Active Listings | Occupancy Rate |
+             Reservation Volume | Revenue (+ month-over-month comparison), plus Upcoming Check-ins
+             which both respondents separately named as a top-4 number they check first. ── */}
         {loading ? (
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-[68px] bg-white rounded-2xl animate-pulse border border-gray-100" />
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-28 bg-white rounded-2xl animate-pulse border border-gray-100" />
             ))}
           </div>
-        ) : (
-          <div className="space-y-3">
-            <StatCard
-              icon={Building}
-              label="My Listings"
-              value={listings.length}
-              color="#3d6b35"
-              onClick={() => navigate("/landlord/listings")}
-            />
-            <StatCard
-              icon={Calendar}
-              label="Pending Reservations"
-              value={pendingCount}
-              color="#d97706"
-              onClick={() => navigate("/landlord/reservations")}
-            />
-            <StatCard
-              icon={MessageCircle}
-              label="Conversations"
-              value={unreadConv}
-              color="#2563eb"
-              onClick={() => navigate("/landlord/messages")}
-            />
+        ) : widgets && (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+            <QuickStatCard icon={Building} label="Active Listings" value={widgets.stats.active_listings}
+              color="#3d6b35" onClick={() => navigate("/landlord/listings")} />
+            <QuickStatCard icon={Home} label="Occupancy Rate"
+              value={widgets.stats.occupancy_rate === null ? "—" : `${widgets.stats.occupancy_rate}%`}
+              sublabel={widgets.stats.occupancy_rate === null ? "No listings yet" : "of your listings"}
+              color="#0891b2" />
+            <QuickStatCard icon={Calendar} label="Reservation Volume" value={widgets.stats.reservations_this_month}
+              delta={widgets.stats.reservations_change_pct} sublabel="this month"
+              color="#d97706" onClick={() => navigate("/landlord/reservations")} />
+            <QuickStatCard icon={Wallet} label="Revenue This Month" value={formatPeso(widgets.stats.revenue_this_month)}
+              delta={widgets.stats.revenue_change_pct} color="#7c3aed" onClick={() => navigate("/landlord/data-analytics")} />
+            <QuickStatCard icon={LogIn} label="Upcoming Move-ins" value={widgets.stats.upcoming_checkins}
+              sublabel="next 14 days" color="#2563eb" onClick={() => navigate("/landlord/reservations")} />
           </div>
         )}
 
-        {/* Recent Reservations */}
-        {!loading && reservations.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
-              <p className="text-[12px] font-semibold text-gray-500 uppercase tracking-wide">Recent Reservations</p>
-              <button
-                onClick={() => navigate("/landlord/reservations")}
-                className="text-[11px] font-semibold text-[#3d6b35] flex items-center gap-1"
-              >
-                View all <ChevronRight size={12} />
-              </button>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {reservations.slice(0, 4).map((r) => (
-                <div key={r.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#3d6b35]/10 flex items-center justify-center shrink-0">
-                    <User size={15} color="#3d6b35" />
+        {/* ── TASK TRACKER + ACTIVITY FEED — both directly validated by both interview respondents ── */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div>
+            <SectionHeader title="Needs Your Attention" />
+            <div className="mt-3">
+              <Card>
+                {loading ? (
+                  <div className="space-y-3 py-2">
+                    {[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />)}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-semibold text-gray-800 truncate">
-                      {r.tenant?.first_name} {r.tenant?.last_name}
-                    </p>
-                    <p className="text-[11px] text-gray-400 truncate">{r.listing?.title}</p>
+                ) : !widgets || (widgets.tasks.pending_reservations === 0 && widgets.tasks.pending_listing_approvals === 0 && widgets.tasks.unread_messages === 0) ? (
+                  <div className="text-center py-8">
+                    <CheckCircle2 size={28} className="text-green-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-400">All caught up — nothing pending.</p>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <StatusBadge status={r.status} />
-                    <span className="text-[10px] text-gray-400">{formatDate(r.created_at)}</span>
+                ) : (
+                  <div className="divide-y divide-gray-50">
+                    {widgets.tasks.pending_reservations > 0 && (
+                      <button onClick={() => navigate("/landlord/reservations")}
+                        className="w-full flex items-center gap-3 py-3 hover:bg-gray-50 transition text-left -mx-4 px-4">
+                        <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                          <Calendar size={14} className="text-amber-600" />
+                        </div>
+                        <p className="flex-1 text-[13px] text-gray-700">
+                          <span className="font-bold">{widgets.tasks.pending_reservations}</span> reservation{widgets.tasks.pending_reservations !== 1 ? "s" : ""} awaiting your review
+                        </p>
+                        <ArrowRight size={14} className="text-gray-300 shrink-0" />
+                      </button>
+                    )}
+                    {widgets.tasks.pending_listing_approvals > 0 && (
+                      <button onClick={() => navigate("/landlord/listings")}
+                        className="w-full flex items-center gap-3 py-3 hover:bg-gray-50 transition text-left -mx-4 px-4">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                          <FileCheck size={14} className="text-blue-600" />
+                        </div>
+                        <p className="flex-1 text-[13px] text-gray-700">
+                          <span className="font-bold">{widgets.tasks.pending_listing_approvals}</span> listing{widgets.tasks.pending_listing_approvals !== 1 ? "s" : ""} awaiting admin approval
+                        </p>
+                        <ArrowRight size={14} className="text-gray-300 shrink-0" />
+                      </button>
+                    )}
+                    {widgets.tasks.unread_messages > 0 && (
+                      <button onClick={() => navigate("/landlord/messages")}
+                        className="w-full flex items-center gap-3 py-3 hover:bg-gray-50 transition text-left -mx-4 px-4">
+                        <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                          <MessageCircle size={14} className="text-purple-600" />
+                        </div>
+                        <p className="flex-1 text-[13px] text-gray-700">
+                          <span className="font-bold">{widgets.tasks.unread_messages}</span> unread message{widgets.tasks.unread_messages !== 1 ? "s" : ""} from tenants
+                        </p>
+                        <ArrowRight size={14} className="text-gray-300 shrink-0" />
+                      </button>
+                    )}
                   </div>
-                </div>
-              ))}
+                )}
+              </Card>
             </div>
           </div>
-        )}
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Quick Actions</p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: "Manage Listings", icon: Building, path: "/landlord/listings", color: "#3d6b35" },
-              { label: "Analytics", icon: BarChart2, path: "/landlord/analytics", color: "#7c3aed" },
-              { label: "View Reservations", icon: Calendar, path: "/landlord/reservations", color: "#d97706" },
-              { label: "Messages", icon: MessageCircle, path: "/landlord/messages", color: "#2563eb" },
-              { label: "Verify Identity", icon: BadgeCheck, path: "/verify", color: "#7c3aed", hide: isVerified },
-            ]
-              .filter((a) => !a.hide)
-              .map(({ label, icon: Icon, path, color }) => (
-                <button
-                  key={label}
-                  onClick={() => navigate(path)}
-                  className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-100 hover:bg-[#f5f7f5] transition text-left"
-                >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: color + "18" }}
-                  >
-                    <Icon size={16} color={color} />
+          <div>
+            <SectionHeader title="Recent Activity" />
+            <div className="mt-3">
+              <Card>
+                {loading ? (
+                  <div className="space-y-3 py-2">
+                    {[...Array(4)].map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />)}
                   </div>
-                  <span className="text-[12px] font-semibold text-gray-700">{label}</span>
-                </button>
-              ))}
+                ) : !widgets || widgets.activity_feed.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-8">No recent activity yet.</p>
+                ) : (
+                  <div className="divide-y divide-gray-50 max-h-[280px] overflow-y-auto">
+                    {widgets.activity_feed.map((item, i) => (
+                      <div key={i} className="flex items-start gap-3 py-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                          item.type === "reservation" ? "bg-amber-50" : "bg-purple-50"
+                        }`}>
+                          {item.type === "reservation"
+                            ? <Calendar size={14} className="text-amber-600" />
+                            : <MessageCircle size={14} className="text-purple-600" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] text-gray-700 leading-snug">{item.message}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Clock size={10} className="text-gray-300" />
+                            <p className="text-[11px] text-gray-400">{timeAgo(item.timestamp)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
           </div>
         </div>
       </div>

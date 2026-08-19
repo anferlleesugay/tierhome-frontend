@@ -31,6 +31,8 @@ import LandlordListings from "./pages/LandlordListings";
 import LandlordReservations from "./pages/LandlordReservations";
 import LandlordMessages from "./pages/LandlordMessages";
 import LandlordAnalytics from "./pages/LandlordAnalytics";
+import LandlordDashboard from "./pages/LandlordDashboard";
+import LandlordLayout from "./layouts/LandlordLayout";
 import ListingAnalytics from "./pages/ListingAnalytics";
 import AdminListingsSummary from "./pages/AdminListingsSummary";
 
@@ -152,16 +154,17 @@ function App() {
           {/* "Dashboard" now folds into Analytics — old links/bookmarks still work via redirect */}
           <Route path="/landlord/dashboard" element={<Navigate to="/landlord/analytics" replace />} />
           <Route path="/landlord/listings" element={
-            <LandlordOnly><LandlordListings /></LandlordOnly>
+            <LandlordOnly><LandlordLayout><LandlordListings /></LandlordLayout></LandlordOnly>
           } />
           <Route path="/landlord/reservations" element={
-            <LandlordOnly><LandlordReservations /></LandlordOnly>
+            <LandlordOnly><LandlordLayout><LandlordReservations /></LandlordLayout></LandlordOnly>
           } />
           <Route path="/landlord/messages" element={
-            <LandlordOnly><LandlordMessages /></LandlordOnly>
+            <LandlordOnly><LandlordLayout><LandlordMessages /></LandlordLayout></LandlordOnly>
           } />
-          <Route path="/landlord/analytics" element={<LandlordVerifyOnly><LandlordAnalytics /></LandlordVerifyOnly>} />
-          <Route path="/landlord/listings/:id/analytics" element={<LandlordOnly><ListingAnalytics /></LandlordOnly>} />
+          <Route path="/landlord/analytics" element={<LandlordVerifyOnly><LandlordLayout><LandlordDashboard /></LandlordLayout></LandlordVerifyOnly>} />
+          <Route path="/landlord/data-analytics" element={<LandlordVerifyOnly><LandlordLayout><LandlordAnalytics /></LandlordLayout></LandlordVerifyOnly>} />
+          <Route path="/landlord/listings/:id/analytics" element={<LandlordOnly><LandlordLayout><ListingAnalytics /></LandlordLayout></LandlordOnly>} />
           
 
           {/* ADMIN ROUTES */}

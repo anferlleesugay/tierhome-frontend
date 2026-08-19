@@ -40,7 +40,7 @@ export default function MobileBottomNav() {
       { name: "Listings",     path: "/landlord/listings",     icon: Building,     auth: false },
       { name: "Reservations", path: "/landlord/reservations", icon: Calendar,     auth: false },
       { name: "Messages",     path: "/landlord/messages",     icon: MessageCircle,auth: false },
-      { name: "Analytics",    path: "/landlord/analytics",    icon: BarChart2,    auth: false },
+      { name: "Dashboard",    path: "/landlord/analytics",    icon: BarChart2,    auth: false },
       { name: "Profile",      path: "/profile",               icon: User,         auth: false },
     ];
 

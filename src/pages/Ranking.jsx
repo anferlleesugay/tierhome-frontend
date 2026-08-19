@@ -327,8 +327,8 @@ export default function Ranking() {
     <div className="min-h-screen bg-gray-50 pb-20">
 
       {/* HEADER */}
-      <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-6">
-        <div className="w-full">
+      <div className="bg-white border-b border-gray-100 px-5 md:px-10 py-6">
+        <div className="max-w-[900px] mx-auto">
           <div className="flex items-center gap-3 mb-1">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -346,7 +346,7 @@ export default function Ranking() {
         </div>
       </div>
 
-      <div className="w-full px-6 md:px-10 pt-6">
+      <div className="max-w-[900px] mx-auto px-5 md:px-10 pt-6">
 
         {/* INPUT FORM */}
         <div

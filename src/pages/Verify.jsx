@@ -322,10 +322,10 @@ export default function Verify() {
         {/* STEP 1: ID */}
         <div className={`bg-white rounded-2xl border shadow-sm p-6 transition-opacity ${!idFile && currentStep !== 1 ? "opacity-50" : ""}`}>
           <div className="flex items-center justify-between mb-1">
-            <h2 className="font-bold text-gray-900">Step 1 — Government ID</h2>
+            <h2 className="font-bold text-gray-900">Step 1 — Valid ID</h2>
             {idFile && <CheckCircle size={20} className="text-green-500" />}
           </div>
-          <p className="text-sm text-gray-500 mb-5">Upload or capture a clear photo of your government-issued ID.</p>
+          <p className="text-sm text-gray-500 mb-5">Upload or capture a clear photo of any valid ID.</p>
           {showIdCamera && (
             <div className="mb-4 rounded-xl overflow-hidden bg-black">
               <video ref={idVideoRef} autoPlay playsInline className="w-full rounded-t-xl" />
@@ -438,7 +438,7 @@ export default function Verify() {
             <p className="text-sm text-gray-500 mb-5">Make sure both photos are clear before submitting.</p>
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Government ID</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Valid ID</p>
                 <img src={idPreview} alt="ID" className="w-full h-40 object-cover rounded-xl border" />
               </div>
               <div>

@@ -137,11 +137,11 @@ function VerificationCard({ item, onApprove, onReject, processing }) {
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
           <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-            Government ID
+            Valid ID
           </p>
           {idUrl ? (
             <div className="relative group">
-              <img src={idUrl} alt="Government ID"
+              <img src={idUrl} alt="Valid ID"
                 className="w-full h-[140px] object-cover rounded-xl border border-gray-100"
                 onError={(e) => { e.target.style.display = "none"; }}
               />

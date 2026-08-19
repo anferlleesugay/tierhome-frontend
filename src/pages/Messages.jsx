@@ -278,7 +278,7 @@ export default function Messages() {
                     <Avatar name={name} picture={other?.profile_picture} size="10" />
                     <div>
                       <p className="font-bold text-sm text-gray-900">{name}</p>
-                      <p className="text-xs text-gray-400 capitalize">{other?.role}</p>
+                      <p className="text-xs text-gray-400">{other?.role === "landlord" ? "Property Owner" : other?.role === "tenant" ? "Tenant" : other?.role}</p>
                     </div>
                   </>
                 );

@@ -4,6 +4,7 @@ import {
   X, ChevronRight, LogOut, Home, Search, Heart, Calendar,
   MessageCircle, LayoutDashboard, Building, Shield, UserCheck,
   List, User, MapPin, Calculator, BadgeCheck, Users, UserX, UserCog, ClipboardList,
+  BarChart2, FileText,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/AuthContext";
@@ -37,11 +38,13 @@ export default function HamburgerMenu({ onClose }) {
   ];
 
   const landlordLinks = [
-    { name: "My Dashboard",   path: "/landlord/analytics",    icon: LayoutDashboard },
-    { name: "My Profile",     path: "/profile",               icon: User },
-    { name: "My Listings",    path: "/landlord/listings",     icon: Building },
-    { name: "Reservations",   path: "/landlord/reservations", icon: Calendar },
-    { name: "Messages",       path: "/landlord/messages",     icon: MessageCircle },
+    { name: "My Dashboard",   path: "/landlord/analytics",      icon: LayoutDashboard },
+    { name: "Analytics",      path: "/landlord/data-analytics", icon: BarChart2 },
+    { name: "My Profile",     path: "/profile",                 icon: User },
+    { name: "My Listings",    path: "/landlord/listings",       icon: Building },
+    { name: "Reservations",   path: "/landlord/reservations",   icon: Calendar },
+    { name: "Messages",       path: "/landlord/messages",       icon: MessageCircle },
+    { name: "Reports",        path: "/landlord/reports",        icon: FileText },
     ...(!isVerified ? [{ name: "Verify Identity", path: "/verify", icon: BadgeCheck }] : []),
   ];
 

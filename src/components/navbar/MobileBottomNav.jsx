@@ -2,7 +2,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home, Search, Heart, MessageCircle, User,
-  LayoutDashboard, Shield, Building, MapPin, Calendar, BarChart2, UserCog,
+  LayoutDashboard, Shield, Building, MapPin, Calendar, BarChart2, UserCog, TrendingUp,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -37,11 +37,11 @@ export default function MobileBottomNav() {
     ];
 
     if (role === "landlord") return [
-      { name: "Listings",     path: "/landlord/listings",     icon: Building,     auth: false },
-      { name: "Reservations", path: "/landlord/reservations", icon: Calendar,     auth: false },
-      { name: "Messages",     path: "/landlord/messages",     icon: MessageCircle,auth: false },
-      { name: "Dashboard",    path: "/landlord/analytics",    icon: BarChart2,    auth: false },
-      { name: "Profile",      path: "/profile",               icon: User,         auth: false },
+      { name: "Listings",     path: "/landlord/listings",       icon: Building,     auth: false },
+      { name: "Reservations", path: "/landlord/reservations",   icon: Calendar,     auth: false },
+      { name: "Messages",     path: "/landlord/messages",       icon: MessageCircle,auth: false },
+      { name: "Dashboard",    path: "/landlord/analytics",      icon: BarChart2,    auth: false },
+      { name: "Analytics",    path: "/landlord/data-analytics", icon: TrendingUp,   auth: false },
     ];
 
     if (role === "admin") return [

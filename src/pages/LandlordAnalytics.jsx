@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   BarChart2, Building, Calendar, RefreshCw, Sparkles,
-  Wallet, Search,
+  Wallet, Search, ShieldCheck,
 } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
@@ -175,6 +175,16 @@ export default function LandlordAnalytics() {
                         <div>
                           <p className="text-[11px] font-bold text-[#3d6b35] uppercase tracking-wide mb-1">AI Insight</p>
                           <p className="text-[12px] text-gray-700 leading-relaxed">{data.forecast.insight}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {data.forecast?.reliability_note && (
+                      <div className="mt-2 p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-2.5">
+                        <ShieldCheck size={16} className="text-blue-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wide mb-1">Forecast Reliability</p>
+                          <p className="text-[12px] text-gray-700 leading-relaxed">{data.forecast.reliability_note}</p>
                         </div>
                       </div>
                     )}

@@ -64,6 +64,7 @@ export default function HamburgerMenu({ onClose }) {
     { name: "User Management",    path: "/admin/users",        icon: UserCog },
     { name: "Deactivation Requests", path: "/admin/deactivation-requests", icon: UserX },
     { name: "Audit Trail",        path: "/admin/audit-trail",  icon: ScrollText },
+    { name: "Model Monitoring",   path: "/admin/model-monitoring", icon: BarChart2 },
   ];
 
   const getLinks = () => {

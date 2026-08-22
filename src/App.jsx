@@ -41,6 +41,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import TenantLayout from "./layouts/TenantLayout";
 import AdminRevenueByOwner from "./pages/AdminRevenueByOwner";
 import AdminAuditTrail from "./pages/AdminAuditTrail";
+import AdminModelMonitoring from "./pages/AdminModelMonitoring";
 import ListingAnalytics from "./pages/ListingAnalytics";
 import AdminListingsSummary from "./pages/AdminListingsSummary";
 
@@ -196,6 +197,7 @@ function App() {
           <Route path="/admin/users"          element={<AdminOnly><AdminLayout><AdminUserManagement /></AdminLayout></AdminOnly>} />
           <Route path="/admin/revenue-by-owner" element={<AdminOnly><AdminLayout><AdminRevenueByOwner /></AdminLayout></AdminOnly>} />
           <Route path="/admin/audit-trail"    element={<AdminOnly><AdminLayout><AdminAuditTrail /></AdminLayout></AdminOnly>} />
+          <Route path="/admin/model-monitoring" element={<AdminOnly><AdminLayout><AdminModelMonitoring /></AdminLayout></AdminOnly>} />
         </Route>
 
         {/* PUBLIC ROUTES */}

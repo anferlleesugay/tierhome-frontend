@@ -3,7 +3,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BarChart2, CheckSquare, ClipboardList, Star, Users, UserCog, UserX,
-  FileText, ChevronLeft, ChevronRight, ScrollText, Wallet,
+  FileText, ChevronLeft, ChevronRight, ScrollText, Wallet, Activity,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { label: "Listings Summary",path: "/admin/listings-summary",        icon: FileText },
   { label: "Revenue by Owner",path: "/admin/revenue-by-owner",        icon: Wallet },
   { label: "Audit Trail",     path: "/admin/audit-trail",             icon: ScrollText },
+  { label: "Model Monitoring", path: "/admin/model-monitoring",       icon: Activity },
 ];
 
 export default function AdminSidebar({ collapsed, onToggle }) {

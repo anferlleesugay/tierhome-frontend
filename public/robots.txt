@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /landlord
+Disallow: /tenant
+
+Sitemap: https://tierhome.live/sitemap.xml

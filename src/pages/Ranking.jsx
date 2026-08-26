@@ -8,7 +8,7 @@ import {
   Calculator, CheckCircle,
   AlertCircle, XCircle, Wallet,
   TrendingUp, PiggyBank, ArrowRight,
-  RefreshCw, AlertTriangle,
+  RefreshCw, AlertTriangle, Landmark,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import ListingCard from "../components/listings/ListingCard";
@@ -217,6 +217,21 @@ export default function Ranking() {
   const [availableSavings, setAvailableSavings] = useState("");
 
   const [computed, setComputed] = useState(null);
+
+  // ── PSA national income context — real government data (with a
+  // graceful static fallback baked into the backend), shown alongside
+  // the tenant's own numbers for a sense of scale. Fetched lazily once
+  // results appear, never blocks the calculator itself if unavailable. ──
+  const [psaContext, setPsaContext] = useState(null);
+
+  useEffect(() => {
+    if (!computed || !token) return;
+    axios.get(`${API}/ranking/national-income-context`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => setPsaContext(res.data?.data || null))
+      .catch(() => setPsaContext(null)); // supplementary context — never surface an error for this
+  }, [computed, token]);
   const [rankedListings, setRankedListings] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -327,8 +342,8 @@ export default function Ranking() {
     <div className="min-h-screen bg-gray-50 pb-20">
 
       {/* HEADER */}
-      <div className="bg-white border-b border-gray-100 px-5 md:px-10 py-6">
-        <div className="max-w-[900px] mx-auto">
+      <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-6">
+        <div className="w-full">
           <div className="flex items-center gap-3 mb-1">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -346,7 +361,7 @@ export default function Ranking() {
         </div>
       </div>
 
-      <div className="max-w-[900px] mx-auto px-5 md:px-10 pt-6">
+      <div className="w-full px-6 md:px-10 pt-6">
 
         {/* INPUT FORM */}
         <div
@@ -534,6 +549,23 @@ export default function Ranking() {
                 icon={PiggyBank}
               />
             </div>
+
+            {/* PSA NATIONAL INCOME CONTEXT — real government data, with
+                honest sourcing shown either way (live vs. static fallback) */}
+            {psaContext?.data?.[0] && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 mb-8 flex items-start gap-3">
+                <Landmark size={18} color="#2563eb" className="shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[13px] font-bold text-blue-800 mb-1">
+                    {psaContext.data[0].label}: {displayPeso(psaContext.data[0].value)}
+                  </p>
+                  <p className="text-[12px] text-blue-700">
+                    For context, this is the {psaContext.is_live ? "latest" : "most recently published"} figure
+                    from the Philippine Statistics Authority. Source: {psaContext.source}.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* RA 9653 INFO */}
             <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-8 flex items-start gap-3">

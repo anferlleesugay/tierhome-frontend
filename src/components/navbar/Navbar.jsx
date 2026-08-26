@@ -119,7 +119,7 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="flex flex-col shrink-0">
-            <img src={logo} className="w-[150px] h-auto object-contain" />
+            <img src={logo} alt="TierHome" className="w-[150px] h-auto object-contain" />
             {!isLandlord && !isAdmin && (
               <span className="text-[10px] text-gray-400 mt-0.5">Angeles City · Verified Rentals</span>
             )}
@@ -251,7 +251,7 @@ export default function Navbar() {
 
         {/* ── MOBILE ── */}
         <div className="md:hidden flex items-center justify-between px-4 h-full">
-          <Link to="/"><img src={icon} className="w-10 h-10 object-contain" /></Link>
+          <Link to="/"><img src={icon} alt="TierHome" className="w-10 h-10 object-contain" /></Link>
 
         {isWelcomePage ? (
             <div className="flex-1" />

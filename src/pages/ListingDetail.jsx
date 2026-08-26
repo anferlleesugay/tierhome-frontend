@@ -259,6 +259,7 @@ const handlePay = async () => {
             <img
               key={i}
               src={img}
+              alt={`${listing.title} - photo ${i + 1}`}
               onClick={() => openViewer(i)}
               className="w-full h-72 object-cover flex-shrink-0 snap-center"
             />
@@ -294,6 +295,7 @@ const handlePay = async () => {
             <img
               key={i}
               src={img}
+              alt={`${listing.title} - photo ${i + 1}`}
               onClick={() => openViewer(i)}
               className={`object-cover w-full h-full cursor-pointer hover:brightness-95 ${
                 i === 0 ? "col-span-2 row-span-2" : ""

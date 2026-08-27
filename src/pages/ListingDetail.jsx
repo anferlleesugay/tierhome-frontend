@@ -506,7 +506,7 @@ const handlePay = async () => {
       {showReserveModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
           onClick={() => { if (!reserving) closeReserveModal(); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden"
             onClick={(e) => e.stopPropagation()}>
 
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -590,7 +590,7 @@ const handlePay = async () => {
                     </label>
                     <input type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)}
                       min={new Date().toISOString().split("T")[0]}
-                      className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition" />
+                      className="w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-3 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition [-webkit-min-logical-width:0px] box-border" />
                   </div>
 
                   <div className="mb-4">
@@ -599,7 +599,7 @@ const handlePay = async () => {
                     </label>
                     <input type="date" value={moveOutDate} onChange={(e) => setMoveOutDate(e.target.value)}
                       min={moveInDate || new Date().toISOString().split("T")[0]}
-                      className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition" />
+                      className="w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-3 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition [-webkit-min-logical-width:0px] box-border" />
                   </div>
 
                   <div className="mb-5">

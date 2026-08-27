@@ -391,7 +391,7 @@ export default function AdminListings() {
 
       {/* FLOATING BULK ACTION BAR */}
       {selected.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 px-5 py-3 flex items-center gap-4">
+        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 px-5 py-3 flex items-center gap-4 max-w-[calc(100vw-2rem)] flex-wrap justify-center">
           <span className="text-sm font-semibold text-gray-700">{selected.size} selected</span>
           <button onClick={() => setBulkRejectOpen(true)} disabled={bulkProcessing}
             className="px-4 py-2 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-50">

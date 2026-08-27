@@ -62,7 +62,8 @@ export default function ListingDetail() {
   const [showReserveModal, setShowReserveModal] = useState(false);
   const [reserveStep,      setReserveStep]      = useState("terms"); // terms | form | success
   const [moveInDate,       setMoveInDate]       = useState("");
-  const isFirefoxBrowser = typeof navigator !== "undefined" && /firefox/i.test(navigator.userAgent);
+  const isSafariBrowser = typeof navigator !== "undefined" &&
+    /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
   const [moveOutDate,      setMoveOutDate]      = useState("");
   const [reserveNotes,     setReserveNotes]     = useState("");
   const [termsAccepted,    setTermsAccepted]    = useState(false);
@@ -592,8 +593,8 @@ const handlePay = async () => {
                     <div className="relative">
                       <input type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)}
                         min={new Date().toISOString().split("T")[0]}
-                        className={`w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl pl-4 ${isFirefoxBrowser ? "pr-4" : "pr-10"} text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition [-webkit-min-logical-width:0px] box-border [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:h-11`} />
-                      {!isFirefoxBrowser && (
+                        className={`w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-3 ${isSafariBrowser ? "pr-10" : ""} text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition [-webkit-min-logical-width:0px] box-border`} />
+                      {isSafariBrowser && (
                         <Calendar size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                       )}
                     </div>
@@ -606,8 +607,8 @@ const handlePay = async () => {
                     <div className="relative">
                       <input type="date" value={moveOutDate} onChange={(e) => setMoveOutDate(e.target.value)}
                         min={moveInDate || new Date().toISOString().split("T")[0]}
-                        className={`w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl pl-4 ${isFirefoxBrowser ? "pr-4" : "pr-10"} text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition [-webkit-min-logical-width:0px] box-border [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:h-11`} />
-                      {!isFirefoxBrowser && (
+                        className={`w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-3 ${isSafariBrowser ? "pr-10" : ""} text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition [-webkit-min-logical-width:0px] box-border`} />
+                      {isSafariBrowser && (
                         <Calendar size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                       )}
                     </div>

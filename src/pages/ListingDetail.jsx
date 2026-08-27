@@ -590,10 +590,11 @@ const handlePay = async () => {
                     <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
                       Preferred Move-in Date <span className="text-gray-400 font-normal normal-case">(optional)</span>
                     </label>
-                    <div className="relative">
+                    <div className="relative overflow-hidden rounded-xl">
                       <input type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)}
                         min={new Date().toISOString().split("T")[0]}
-                        className={`w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-3 ${isSafariBrowser ? "pr-10" : ""} text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition [-webkit-min-logical-width:0px] box-border`} />
+                        style={{ fontSize: "16px" }}
+                        className={`block w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-3 ${isSafariBrowser ? "pr-10" : ""} text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition box-border`} />
                       {isSafariBrowser && (
                         <Calendar size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                       )}
@@ -604,10 +605,11 @@ const handlePay = async () => {
                     <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
                       Expected Move-out Date <span className="text-gray-400 font-normal normal-case">(optional — leave blank if month-to-month)</span>
                     </label>
-                    <div className="relative">
+                    <div className="relative overflow-hidden rounded-xl">
                       <input type="date" value={moveOutDate} onChange={(e) => setMoveOutDate(e.target.value)}
                         min={moveInDate || new Date().toISOString().split("T")[0]}
-                        className={`w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-3 ${isSafariBrowser ? "pr-10" : ""} text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition [-webkit-min-logical-width:0px] box-border`} />
+                        style={{ fontSize: "16px" }}
+                        className={`block w-full min-w-0 max-w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-3 ${isSafariBrowser ? "pr-10" : ""} text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition box-border`} />
                       {isSafariBrowser && (
                         <Calendar size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                       )}

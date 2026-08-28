@@ -130,8 +130,11 @@ const handlePay = async () => {
       const { invoice_url } = intentRes.data.data;
 
       if (invoice_url) {
-        // Send the tenant to Xendit's hosted sandbox checkout page
-        window.location.href = invoice_url;
+        // Send the tenant to Xendit's hosted sandbox checkout page.
+        // Using replace() instead of href so this leg doesn't sit as its
+        // own entry in browser history (avoids landing back on a stale
+        // Xendit page if the user presses Back after payment completes).
+        window.location.replace(invoice_url);
       } else {
         setPaymentError("Could not start the sandbox payment. Please try again.");
         setPayingNow(false);
@@ -143,7 +146,7 @@ const handlePay = async () => {
     }
   };
   useEffect(() => {
-    // ✅ Handle tenant returning from PayMongo's sandbox authorization page
+    // ✅ Handle tenant returning from Xendit's sandbox checkout page
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment_return') === '1' && params.get('reservation_id') && token) {
       const resId = params.get('reservation_id');
@@ -157,6 +160,20 @@ const handlePay = async () => {
       }).then((res) => {
         if (res.data?.data?.payment_status === 'paid') {
           setReserveStep('success');
+
+          // Xendit's own return redirect just pushed a fresh history entry
+          // directly on top of their checkout page. A single Back press
+          // from here would land the tenant right back on that stale,
+          // already-used payment page. Trap it: push one extra entry now,
+          // and if the tenant presses Back, immediately forward them past
+          // the Xendit entry to a safe in-app screen instead of letting
+          // it render.
+          window.history.pushState({ tierhomePaymentDone: true }, '', `/listing/${id}`);
+          const handlePopState = () => {
+            navigate('/tenant/reservations', { replace: true });
+          };
+          window.addEventListener('popstate', handlePopState);
+          return () => window.removeEventListener('popstate', handlePopState);
         } else {
           setPaymentError("Payment was not completed. You can try again below.");
         }

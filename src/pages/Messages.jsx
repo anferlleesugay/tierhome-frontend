@@ -192,7 +192,7 @@ export default function Messages() {
   });
 
   return (
-    <div className="flex h-[calc(100vh-80px)] bg-gray-50 overflow-hidden">
+    <div className="flex h-full bg-gray-50 overflow-hidden">
 
       {/* LEFT: Conversation List */}
       <div className={`${showChat ? "hidden md:flex" : "flex"} w-full md:w-80 lg:w-96 flex-col bg-white border-r border-gray-100`}>

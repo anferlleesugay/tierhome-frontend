@@ -138,7 +138,7 @@ export default function AdminListingsSummary() {
                       <div
                         key={l.id}
                         onClick={() => navigate(`/admin/listings/${l.id}/analytics`)}
-                        className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
+                        className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50 transition flex-wrap"
                       >
                         <div className="w-14 h-14 rounded-xl bg-[#3d6b35]/10 flex items-center justify-center shrink-0 overflow-hidden">
                           {cover ? (

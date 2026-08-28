@@ -85,7 +85,7 @@ export default function LandlordMaintenance() {
           </button>
         </div>
 
-        <div className="w-full flex gap-2 mt-3">
+        <div className="w-full flex gap-2 mt-3 flex-wrap">
           {TABS.map((t) => (
             <button
               key={t.key}

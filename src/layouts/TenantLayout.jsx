@@ -7,9 +7,9 @@ export default function TenantLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full h-full">
       <TenantSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-      <div className={`flex-1 min-w-0 ${collapsed ? "md:ml-[76px]" : "md:ml-[220px]"}`}>
+      <div className={`flex-1 min-w-0 h-full ${collapsed ? "md:ml-[76px]" : "md:ml-[220px]"}`}>
         {children}
       </div>
     </div>

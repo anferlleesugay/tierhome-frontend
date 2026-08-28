@@ -541,7 +541,7 @@ export default function AdminVerification() {
                   className="w-full h-10 bg-white border border-gray-200 rounded-xl pl-10 pr-4 text-sm outline-none focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10 transition-all"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {[
                   { key: "all", label: "All" },
                   { key: "auto", label: "Auto-Verified ≥90%" },

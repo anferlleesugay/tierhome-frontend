@@ -242,7 +242,7 @@ export default function LandlordMessages() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-80px)] bg-gray-50 overflow-hidden">
+    <div className="flex h-full bg-gray-50 overflow-hidden">
 
       {/* PANEL 1: Listings */}
       <div className={`${panel !== "listings" ? "hidden md:flex" : "flex"} w-full md:w-72 flex-col bg-white border-r border-gray-100`}>

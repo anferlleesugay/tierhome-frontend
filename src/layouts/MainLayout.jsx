@@ -25,7 +25,7 @@ export default function MainLayout() {
 
       {/* MAIN CONTENT — the single scrollable region; navbar and bottom nav
           stay fixed in place while only this area scrolls */}
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+      <main className="flex-1 min-h-0 overflow-y-auto pb-20 md:pb-0">
         <Outlet />
       </main>
 

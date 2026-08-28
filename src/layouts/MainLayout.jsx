@@ -19,12 +19,13 @@ export default function MainLayout() {
   const isWelcomePage = location.pathname === "/" && !isLoggedIn;
 
   return (
-    <>
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* TOP NAVBAR */}
       <Navbar />
 
-      {/* MAIN CONTENT */}
-      <main className="pb-20 md:pb-0">
+      {/* MAIN CONTENT — the single scrollable region; navbar and bottom nav
+          stay fixed in place while only this area scrolls */}
+      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
         <Outlet />
       </main>
 
@@ -37,6 +38,6 @@ export default function MainLayout() {
       <PushNotificationHandler />
       <BackButtonHandler />
       <ExitHintToast />
-    </>
+    </div>
   );
 }

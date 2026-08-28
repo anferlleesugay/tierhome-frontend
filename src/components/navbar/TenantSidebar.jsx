@@ -23,8 +23,8 @@ export default function TenantSidebar({ collapsed, onToggle }) {
 
   return (
     <aside
-      style={{ position: 'sticky', top: 0 }}
-      className={`hidden md:flex flex-col shrink-0 bg-white border-r border-gray-100 min-h-full transition-all duration-200 ${
+      style={{ position: 'fixed', top: '5rem', left: 0, height: 'calc(100vh - 5rem)', zIndex: 30 }}
+      className={`hidden md:flex flex-col shrink-0 bg-white border-r border-gray-100 transition-all duration-200 ${
         collapsed ? "w-[76px]" : "w-[220px]"
       }`}
     >

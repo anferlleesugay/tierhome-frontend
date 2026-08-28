@@ -9,7 +9,9 @@ export default function AdminLayout({ children }) {
   return (
     <div className="flex w-full">
       <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-      <div className="flex-1 min-w-0">{children}</div>
+      <div className={`flex-1 min-w-0 ${collapsed ? "md:ml-[76px]" : "md:ml-[220px]"}`}>
+        {children}
+      </div>
     </div>
   );
 }

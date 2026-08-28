@@ -339,7 +339,7 @@ export default function Ranking() {
   const hasErrors = validationWarnings.some(w => w.type === "error");
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-full bg-gray-50 pb-20">
 
       {/* HEADER */}
       <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-6">

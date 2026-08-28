@@ -584,7 +584,7 @@ export default function LandlordListings() {
   if (loading) return <div className="p-6 text-center text-gray-500">Loading listings...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-full bg-gray-50 p-4 md:p-6">
       <div className="w-full">
 
         {/* HEADER */}

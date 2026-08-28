@@ -212,14 +212,14 @@ export default function Verify() {
 
   /* ─── Loading ────────────────────────────────────── */
   if (pageLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-full flex items-center justify-center bg-gray-50">
       <Loader size={36} className="text-green-600 animate-spin" />
     </div>
   );
 
   /* ─── Verified ───────────────────────────────────── */
   if (status === "verified") return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
       <div className="max-w-sm w-full text-center">
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
           <PartyPopper size={40} className="text-green-600" />
@@ -236,7 +236,7 @@ export default function Verify() {
 
   /* ─── Pending ────────────────────────────────────── */
   if (status === "pending") return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center px-4">
+    <div className="min-h-full bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center px-4">
       <div className="max-w-sm w-full text-center">
         <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
           <Clock size={40} className="text-amber-600 animate-pulse" />
@@ -254,7 +254,7 @@ export default function Verify() {
 
   /* ─── Rejected ───────────────────────────────────── */
   if (status === "rejected") return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center px-4">
+    <div className="min-h-full bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center px-4">
       <div className="max-w-sm w-full text-center">
         <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
           <XCircle size={40} className="text-red-600" />
@@ -278,7 +278,7 @@ export default function Verify() {
 
   /* ─── Unverified Main Form ───────────────────────── */
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-full bg-gray-50 pb-20">
       <div className="bg-white border-b sticky top-0 z-10 px-4 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <h1 className="text-lg font-bold text-gray-900">Identity Verification</h1>

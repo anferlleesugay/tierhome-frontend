@@ -491,7 +491,7 @@ export default function AdminVerification() {
         />
       )}
 
-      <div className="min-h-screen bg-gray-50 pb-16">
+      <div className="min-h-full bg-gray-50 pb-16">
 
         <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-6">
           <div className="w-full flex items-center justify-between">

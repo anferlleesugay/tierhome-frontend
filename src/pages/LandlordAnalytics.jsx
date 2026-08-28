@@ -104,7 +104,7 @@ export default function LandlordAnalytics() {
   })();
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] pb-16 w-full">
+    <div className="min-h-full bg-[#f5f7f5] pb-16 w-full">
       {/* HEADER */}
       <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-4 sticky top-0 z-20">
         <div className="w-full flex items-center justify-between">

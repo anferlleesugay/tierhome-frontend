@@ -222,7 +222,7 @@ const handlePay = async () => {
   if (loading) return <div className="p-10 text-center text-gray-400">Loading...</div>;
 
   if (notAllowed) return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
+    <div className="min-h-full flex flex-col items-center justify-center text-center px-6">
       <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
         <MapPin size={36} className="text-gray-300" />
       </div>
@@ -251,7 +251,7 @@ const handlePay = async () => {
   };
 
   return (
-    <div className="bg-[#fafafa] min-h-screen pb-24">
+    <div className="bg-[#fafafa] min-h-full pb-24">
 
       {/* ================= MOBILE GALLERY + BACK ================= */}
       <div className="md:hidden relative">

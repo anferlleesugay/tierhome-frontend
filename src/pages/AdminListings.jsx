@@ -288,7 +288,7 @@ export default function AdminListings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28">
+    <div className="min-h-full bg-gray-50 pb-28">
 
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-5 sticky top-0 z-20">

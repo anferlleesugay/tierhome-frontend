@@ -173,13 +173,13 @@ export default function AdminAmenityRequests() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-full flex items-center justify-center">
       <Loader size={32} className="text-[#3d6b35] animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10 w-full">
+    <div className="min-h-full bg-gray-50 pb-10 w-full">
 
       <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-5">
         <div className="w-full flex items-center gap-3">

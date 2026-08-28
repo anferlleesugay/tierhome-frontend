@@ -74,7 +74,7 @@ export default function LandlordMaintenance() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] pb-16 w-full">
+    <div className="min-h-full bg-[#f5f7f5] pb-16 w-full">
       <div className="bg-white border-b border-gray-100 px-6 md:px-10 py-4 sticky top-0 z-20">
         <div className="w-full flex items-center justify-between gap-4">
           <h1 className="text-[22px] font-bold text-gray-900 flex items-center gap-2 shrink-0">

@@ -187,13 +187,13 @@ export default function Profile() {
     : "bg-green-100 text-green-700";
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-full flex items-center justify-center">
       <Loader size={32} className="text-[#3d6b35] animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 md:pb-10 w-full">
+    <div className="min-h-full bg-gray-50 pb-24 md:pb-10 w-full">
       <div className="max-w-2xl mx-auto px-4 md:px-0 py-8">
 
         {/* Single centered column for every role — matches the Property Owner

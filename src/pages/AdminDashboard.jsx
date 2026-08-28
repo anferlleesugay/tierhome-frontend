@@ -109,7 +109,7 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f5f7f5] pb-16 w-full">
+    <div className="min-h-full bg-[#f5f7f5] pb-16 w-full">
       {/* HERO BANNER */}
       <div
         className="w-full px-6 md:px-10 py-8"

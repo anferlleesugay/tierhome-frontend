@@ -136,7 +136,7 @@ export default function SavedListings() {
         />
       )}
 
-      <div className="bg-gray-50 min-h-screen">
+      <div className="bg-gray-50 min-h-full">
 
         {/* HEADER */}
         <div className="px-5 md:px-10 py-6 flex justify-between items-center">

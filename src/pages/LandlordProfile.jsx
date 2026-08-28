@@ -195,13 +195,13 @@ export default function LandlordProfile() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-full flex items-center justify-center">
       <Loader size={32} className="text-[#3d6b35] animate-spin" />
     </div>
   );
 
   if (notFound) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-full flex items-center justify-center">
       <div className="text-center">
         <p className="text-xl font-bold text-gray-700 mb-2">Profile not found</p>
         <button onClick={() => navigate(-1)} className="text-[#3d6b35] font-medium hover:underline">Go back</button>
@@ -214,7 +214,7 @@ export default function LandlordProfile() {
   const listings  = profile?.listings || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 md:pb-10">
+    <div className="min-h-full bg-gray-50 pb-24 md:pb-10">
       <div className="max-w-4xl mx-auto px-4 py-8">
 
         {/* Back button */}

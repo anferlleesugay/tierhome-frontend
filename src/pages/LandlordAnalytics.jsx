@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   BarChart2, Building, Calendar, RefreshCw, Sparkles,
-  Wallet, Search, ShieldCheck,
+  Wallet, Search, ShieldCheck, Receipt,
 } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
@@ -165,7 +165,7 @@ export default function LandlordAnalytics() {
                         <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
                         <Line type="monotone" dataKey="Tenant Demand" stroke="#d97706" strokeWidth={2.5} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="Forecast" stroke="#3d6b35" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="Forecast" stroke="#2563eb" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
 
@@ -204,8 +204,8 @@ export default function LandlordAnalytics() {
                       <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                       <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Line type="monotone" dataKey="Reservations" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 3 }} />
-                      <Line type="monotone" dataKey="Forecast" stroke="#7c3aed" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="Reservations" stroke="#16a34a" strokeWidth={2.5} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="Forecast" stroke="#ea580c" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
@@ -256,6 +256,36 @@ export default function LandlordAnalytics() {
                       </ResponsiveContainer>
                     )}
                   </Card>
+                </div>
+              </div>
+
+              <div>
+                <SectionHeader title="Paid Reservation Breakdown" />
+                <div className="mt-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  {!data.paid_reservations || data.paid_reservations.length === 0 ? (
+                    <div className="text-center py-16">
+                      <Receipt size={36} className="text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">No paid reservation fees yet.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-50 max-h-[420px] overflow-y-auto">
+                      {data.paid_reservations.map((r) => (
+                        <div key={r.id} className="flex items-center gap-4 px-5 py-4">
+                          <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                            <Receipt size={16} className="text-purple-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[14px] font-semibold text-gray-800 truncate">{r.tenant_name}</p>
+                            <p className="text-[12px] text-gray-400 truncate">
+                              {r.listing_title}
+                              {r.paid_at && ` · ${new Date(r.paid_at).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}`}
+                            </p>
+                          </div>
+                          <p className="text-[15px] font-bold text-[#3d6b35] shrink-0">{formatPeso(r.amount)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

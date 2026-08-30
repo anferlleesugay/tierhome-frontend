@@ -186,15 +186,15 @@ export default function AdminLandlordDetail() {
                       <LineChart data={combinedChartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                        <YAxis yAxisId="demand" tick={{ fontSize: 10 }} allowDecimals={false}
+                        <YAxis yAxisId="demand" tick={{ fontSize: 10 }} allowDecimals={false} domain={[-0.3, "dataMax + 1"]}
                           label={{ value: "Searches", angle: -90, position: "insideLeft", fontSize: 10, fill: "#d97706" }} />
-                        <YAxis yAxisId="reservations" orientation="right" tick={{ fontSize: 10 }} allowDecimals={false}
+                        <YAxis yAxisId="reservations" orientation="right" tick={{ fontSize: 10 }} allowDecimals={false} domain={[-1, "dataMax + 2"]}
                           label={{ value: "Reservations", angle: 90, position: "insideRight", fontSize: 10, fill: "#2563eb" }} />
                         <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
                         <Line yAxisId="demand" type="monotone" dataKey="Tenant Demand" stroke="#d97706" strokeWidth={2.5} dot={{ r: 3 }} />
-                        <Line yAxisId="demand" type="monotone" dataKey="Demand Forecast" stroke="#2563eb" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
                         <Line yAxisId="reservations" type="monotone" dataKey="Reservations" stroke="#16a34a" strokeWidth={2.5} dot={{ r: 3 }} />
+                        <Line yAxisId="demand" type="monotone" dataKey="Demand Forecast" stroke="#2563eb" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
                         <Line yAxisId="reservations" type="monotone" dataKey="Reservation Forecast" stroke="#ea580c" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>

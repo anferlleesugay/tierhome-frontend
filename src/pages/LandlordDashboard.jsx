@@ -6,7 +6,7 @@ import axios from "axios";
 import {
   LayoutDashboard, Building, Calendar, RefreshCw,
   Wallet, MessageCircle, FileCheck, Clock,
-  ArrowRight, CheckCircle2, LogIn, Home, TrendingUp, TrendingDown, Wrench,
+  ArrowRight, CheckCircle2, LogIn, Home, TrendingUp, TrendingDown, Wrench, Search,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -125,13 +125,13 @@ export default function LandlordDashboard() {
              Reservation Volume | Revenue (+ month-over-month comparison), plus Upcoming Check-ins
              which both respondents separately named as a top-4 number they check first. ── */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-            {[...Array(5)].map((_, i) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+            {[...Array(6)].map((_, i) => (
               <div key={i} className="h-28 bg-white rounded-2xl animate-pulse border border-gray-100" />
             ))}
           </div>
         ) : widgets && (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
             <QuickStatCard icon={Building} label="Active Listings" value={widgets.stats.active_listings}
               color="#3d6b35" onClick={() => navigate("/landlord/listings")} />
             <QuickStatCard icon={Home} label="Occupancy Rate"
@@ -145,6 +145,8 @@ export default function LandlordDashboard() {
               delta={widgets.stats.revenue_change_pct} color="#7c3aed" onClick={() => navigate("/landlord/data-analytics")} />
             <QuickStatCard icon={LogIn} label="Upcoming Move-ins" value={widgets.stats.upcoming_checkins}
               sublabel="next 14 days" color="#2563eb" onClick={() => navigate("/landlord/reservations")} />
+            <QuickStatCard icon={Search} label="Area Searches" value={widgets.stats.area_searches}
+              sublabel="tenants interested in your area(s)" color="#0284c7" onClick={() => navigate("/landlord/data-analytics")} />
           </div>
         )}
 

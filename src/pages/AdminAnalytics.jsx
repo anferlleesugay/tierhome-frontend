@@ -374,7 +374,7 @@ export default function AdminAnalytics() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
               <div>
                 <SectionHeader title="Pending Listing Price Stats" />
                 <Card className="mt-3">
@@ -416,7 +416,7 @@ export default function AdminAnalytics() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
               {data.pending_verifications.length > 0 && (
                 <div>
                   <SectionHeader title="Verification Queue Log" />

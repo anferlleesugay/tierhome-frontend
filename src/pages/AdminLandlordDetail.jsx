@@ -58,6 +58,22 @@ function buildForecastChartData(historicalMonths, forecastArray, valueLabel) {
   return combined;
 }
 
+// ── Merges the demand and reservation datasets into one shared timeline so both
+// metrics can be compared directly on a single chart, rather than two separate
+// charts with unrelated scales side by side.
+function mergeDemandAndReservationData(demandData, reservationData) {
+  const byMonth = {};
+  demandData.forEach((d) => {
+    byMonth[d.month] = { ...byMonth[d.month], month: d.month, "Tenant Demand": d["Tenant Demand"], "Demand Forecast": d.Forecast };
+  });
+  reservationData.forEach((d) => {
+    byMonth[d.month] = { ...byMonth[d.month], month: d.month, "Reservations": d.Reservations, "Reservation Forecast": d.Forecast };
+  });
+  // Preserve chronological order using whichever source array is longer/authoritative
+  const order = (demandData.length >= reservationData.length ? demandData : reservationData).map((d) => d.month);
+  return order.map((m) => byMonth[m]);
+}
+
 export default function AdminLandlordDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -92,6 +108,8 @@ export default function AdminLandlordDetail() {
   const reservationChartData = data
     ? buildForecastChartData(data.reservations_by_month, data.forecast?.reservations_next_3_months, "Reservations")
     : [];
+
+  const combinedChartData = mergeDemandAndReservationData(demandChartData, reservationChartData);
 
   const landlord = data?.landlord;
   const initials = landlord ? `${landlord.first_name?.charAt(0) || ""}${landlord.last_name?.charAt(0) || ""}` : "?";
@@ -151,29 +169,33 @@ export default function AdminLandlordDetail() {
                 color="#7c3aed" sublabel="from paid reservation fees" />
             </div>
 
-            {/* TENANT DEMAND + RESERVATION TREND — side by side on desktop */}
+            {/* TENANT DEMAND + RESERVATION TREND — combined into one chart so demand
+                 and reservations can be compared directly on a shared timeline. */}
             <SectionHeader title="3-Month Forecasts" />
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div>
               <Card>
-                <p className="text-[13px] font-bold text-gray-800 mb-1">Tenant Demand — Search Activity</p>
-                {demandChartData.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-16">
-                    No search activity logged yet for this landlord's area(s).
-                  </p>
+                <p className="text-[13px] font-bold text-gray-800 mb-1">Tenant Demand vs. Reservation Requests</p>
+                {combinedChartData.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-16">No data yet.</p>
                 ) : (
                   <>
                     <p className="text-[11px] text-gray-400 mb-2">
-                      Tenants who searched or checked affordability for this landlord's barangay(s).
+                      Search/affordability-check activity for this landlord's barangay(s), compared against actual reservation requests on the same timeline.
                     </p>
-                    <ResponsiveContainer width="100%" height={240}>
-                      <LineChart data={demandChartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <LineChart data={combinedChartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                        <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                        <YAxis yAxisId="demand" tick={{ fontSize: 10 }} allowDecimals={false}
+                          label={{ value: "Searches", angle: -90, position: "insideLeft", fontSize: 10, fill: "#d97706" }} />
+                        <YAxis yAxisId="reservations" orientation="right" tick={{ fontSize: 10 }} allowDecimals={false}
+                          label={{ value: "Reservations", angle: 90, position: "insideRight", fontSize: 10, fill: "#2563eb" }} />
                         <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
-                        <Line type="monotone" dataKey="Tenant Demand" stroke="#d97706" strokeWidth={2.5} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="Forecast" stroke="#2563eb" strokeWidth={3} strokeDasharray="5 5" dot={{ r: 3.5 }} />
+                        <Line yAxisId="demand" type="monotone" dataKey="Tenant Demand" stroke="#d97706" strokeWidth={2.5} dot={{ r: 3 }} />
+                        <Line yAxisId="demand" type="monotone" dataKey="Demand Forecast" stroke="#2563eb" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+                        <Line yAxisId="reservations" type="monotone" dataKey="Reservations" stroke="#16a34a" strokeWidth={2.5} dot={{ r: 3 }} />
+                        <Line yAxisId="reservations" type="monotone" dataKey="Reservation Forecast" stroke="#ea580c" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
 
@@ -187,25 +209,6 @@ export default function AdminLandlordDetail() {
                       </div>
                     )}
                   </>
-                )}
-              </Card>
-
-              <Card>
-                <p className="text-[13px] font-bold text-gray-800 mb-1">Reservation Requests</p>
-                {reservationChartData.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-16">No reservation data yet.</p>
-                ) : (
-                  <ResponsiveContainer width="100%" height={240}>
-                    <LineChart data={reservationChartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                      <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
-                      <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Line type="monotone" dataKey="Reservations" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 3 }} />
-                      <Line type="monotone" dataKey="Forecast" stroke="#ea580c" strokeWidth={3} strokeDasharray="5 5" dot={{ r: 3.5 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
                 )}
               </Card>
             </div>

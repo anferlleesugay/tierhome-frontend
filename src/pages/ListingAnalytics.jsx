@@ -186,7 +186,7 @@ export default function ListingAnalytics() {
                         <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
                         <Line type="monotone" dataKey="Area Interest" stroke="#d97706" strokeWidth={2.5} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="Forecast" stroke="#3d6b35" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="Forecast" stroke="#2563eb" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
 
@@ -215,8 +215,8 @@ export default function ListingAnalytics() {
                       <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                       <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Line type="monotone" dataKey="Reservations" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 3 }} />
-                      <Line type="monotone" dataKey="Forecast" stroke="#7c3aed" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="Reservations" stroke="#16a34a" strokeWidth={2.5} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="Forecast" stroke="#ea580c" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 )}

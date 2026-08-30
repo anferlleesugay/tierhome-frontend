@@ -131,6 +131,18 @@ export default function LandlordAnalytics() {
           </div>
         ) : (
           <>
+            {/* SUMMARY */}
+            <SectionHeader title="Overview" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MetricCard icon={Building} label="Total Listings" value={data.summary.total_listings} color="#3d6b35" />
+              <MetricCard icon={Search} label="Area Searches" value={data.summary.area_searches} color="#d97706"
+                sublabel="tenants interested in your area(s)" />
+              <MetricCard icon={Calendar} label="Total Reservations" value={data.summary.total_reservations}
+                color="#2563eb" sublabel={`${data.summary.pending_reservations} pending`} />
+              <MetricCard icon={Wallet} label="Total Revenue" value={formatPeso(data.summary.total_revenue)}
+                color="#7c3aed" sublabel="from paid reservation fees" />
+            </div>
+
             {/* TENANT DEMAND + RESERVATION TREND — side by side on desktop */}
             <SectionHeader title="3-Month Forecasts" />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">

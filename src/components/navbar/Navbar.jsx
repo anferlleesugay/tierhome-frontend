@@ -13,7 +13,6 @@ import icon from "../../assets/icon.png";
 import SearchBar from "./SearchBar";
 import MobileSearchModal from "./MobileSearchModal";
 import NotificationBell from "./NotificationBell";
-import MobileBottomNav from "./MobileBottomNav";
 import HamburgerMenu from "./HamburgerMenu";
 
 import { useAuth } from "../../context/AuthContext";
@@ -281,7 +280,6 @@ export default function Navbar() {
           onClose={() => setShowMobileSearch(false)} onSearch={handleSearch} />
       )}
       {showHamburger && <HamburgerMenu onClose={() => setShowHamburger(false)} />}
-      <MobileBottomNav />
     </>
   );
 }

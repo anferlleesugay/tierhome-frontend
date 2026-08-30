@@ -206,22 +206,6 @@ export default function AdminAnalytics() {
 
       <div className="w-full px-6 md:px-10 mt-6 space-y-6">
 
-        {trendData?.summary && (
-          <>
-            <SectionHeader title="Platform Summary" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricCard icon={Users} label="Total Users" value={trendData.summary.total_users} color="#3d6b35"
-                sublabel={`${trendData.summary.total_tenants} tenants · ${trendData.summary.total_landlords} landlords`} />
-              <MetricCard icon={Building} label="Total Listings" value={trendData.summary.total_listings} color="#2563eb"
-                sublabel={`${trendData.summary.verified_listings} verified`} />
-              <MetricCard icon={Search} label="Total Searches" value={trendData.summary.total_searches} color="#d97706"
-                sublabel="tenant interest signals" />
-              <MetricCard icon={Calendar} label="Total Reservations" value={trendData.summary.total_reservations} color="#7c3aed"
-                sublabel={`${trendData.summary.pending_reservations} pending`} />
-            </div>
-          </>
-        )}
-
         <SectionHeader title="Demand & Reservation Trends (3-Month Forecast)" />
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <Card>
@@ -390,14 +374,6 @@ export default function AdminAnalytics() {
           </div>
         ) : (
           <>
-            <SectionHeader title="Moderation Overview" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricCard icon={BadgeCheck} label="Verified Users" value={totalVerified} color="#3d6b35" sublabel="in Face Collection" />
-              <MetricCard icon={Clock} label="Pending Verifications" value={pendingVer} color="#d97706" sublabel="awaiting review" />
-              <MetricCard icon={Building} label="Pending Listings" value={pendingLst} color="#2563eb" sublabel="awaiting approval" />
-              <MetricCard icon={MessageCircle} label="Conversations" value={totalConv} color="#7c3aed" sublabel="active threads" />
-            </div>
-
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <div>
                 <SectionHeader title="Pending Listing Price Stats" />

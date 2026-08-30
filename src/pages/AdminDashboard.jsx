@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Users, Building, Calendar, RefreshCw,
   Wallet, BadgeCheck, FileCheck, Star, UserX, Clock,
   ArrowRight, CheckCircle2, TrendingUp, TrendingDown, ScrollText,
+  Search, MessageCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -140,13 +141,13 @@ export default function AdminDashboard() {
              "healthy at a glance" numbers: Active Users | Active Listings | Reservations | Platform
              Revenue, with month-over-month comparison. ── */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="h-28 bg-white rounded-2xl animate-pulse border border-gray-100" />
             ))}
           </div>
         ) : widgets && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <QuickStatCard icon={Users} label="Active Users" value={widgets.stats.active_users}
               color="#3d6b35" onClick={() => navigate("/admin/users")} />
             <QuickStatCard icon={Building} label="Active Listings" value={widgets.stats.active_listings}
@@ -157,6 +158,27 @@ export default function AdminDashboard() {
             <QuickStatCard icon={Wallet} label="Platform Revenue" value={formatPeso(widgets.stats.revenue_this_month)}
               delta={widgets.stats.revenue_change_pct} sublabel="this month"
               color="#7c3aed" onClick={() => navigate("/admin/revenue-by-owner")} />
+            <QuickStatCard icon={Search} label="Total Searches" value={widgets.stats.total_searches}
+              color="#0284c7" />
+          </div>
+        )}
+
+        {/* ── MODERATION OVERVIEW — moved here from Admin Analytics, since it's
+             day-to-day operational info an admin benefits from seeing immediately,
+             not something that belonged in a trends/reporting page. ── */}
+        {!loading && widgets && (
+          <div>
+            <SectionHeader title="Moderation Overview" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+              <QuickStatCard icon={BadgeCheck} label="Verified Users" value={widgets.moderation.verified_users}
+                sublabel="in Face Collection" color="#3d6b35" />
+              <QuickStatCard icon={Clock} label="Pending Verifications" value={widgets.moderation.pending_verifications}
+                sublabel="awaiting review" color="#d97706" onClick={() => navigate("/admin/verification")} />
+              <QuickStatCard icon={Building} label="Pending Listings" value={widgets.moderation.pending_listings}
+                sublabel="awaiting approval" color="#2563eb" onClick={() => navigate("/admin/listings")} />
+              <QuickStatCard icon={MessageCircle} label="Conversations" value={widgets.moderation.conversations}
+                sublabel="active threads" color="#7c3aed" />
+            </div>
           </div>
         )}
 

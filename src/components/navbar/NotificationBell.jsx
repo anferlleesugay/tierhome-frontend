@@ -55,9 +55,38 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!isLoggedIn) return;
     fetchNotifications();
-    // ✅ Poll every 10 seconds so new notifications show up quickly without a manual refresh
-    const interval = setInterval(fetchNotifications, 10000);
-    return () => clearInterval(interval);
+
+    // ✅ Poll every 30s while the tab is actually visible/focused — no point
+    // hitting the endpoint on a schedule if the admin has switched tabs or
+    // minimized the window. Also does one immediate fetch the moment the
+    // tab becomes visible again, so returning to it doesn't feel stale.
+    let interval = null;
+
+    const startPolling = () => {
+      if (interval) return;
+      interval = setInterval(fetchNotifications, 30000);
+    };
+    const stopPolling = () => {
+      if (interval) clearInterval(interval);
+      interval = null;
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchNotifications();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    if (document.visibilityState === "visible") startPolling();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [isLoggedIn, token]);
 
   useEffect(() => {

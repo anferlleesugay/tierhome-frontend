@@ -57,16 +57,30 @@ export default function Register() {
 
   // ── reCAPTCHA v2 (explicit render — safer for a React modal that
   // mounts/unmounts, unlike the default auto-render meant for static pages) ──
-  const recaptchaRef = useRef(null);
-  const widgetIdRef = useRef(null);
+  // ── reCAPTCHA v2 (explicit render) — separate widget instances for
+  // desktop and mobile layouts. Both layouts render simultaneously in the
+  // DOM (CSS just hides one via Tailwind's sm: breakpoint), so a single
+  // ref/widget shared between both would only ever attach to one of them.
+  const recaptchaRefDesktop = useRef(null);
+  const widgetIdDesktopRef = useRef(null);
+  const recaptchaRefMobile = useRef(null);
+  const widgetIdMobileRef = useRef(null);
 
   useEffect(() => {
     let interval;
     const tryRender = () => {
-      if (window.grecaptcha && window.grecaptcha.render && recaptchaRef.current && widgetIdRef.current === null) {
-        widgetIdRef.current = window.grecaptcha.render(recaptchaRef.current, {
+      if (!window.grecaptcha || !window.grecaptcha.render) return;
+      if (recaptchaRefDesktop.current && widgetIdDesktopRef.current === null) {
+        widgetIdDesktopRef.current = window.grecaptcha.render(recaptchaRefDesktop.current, {
           sitekey: RECAPTCHA_SITE_KEY,
         });
+      }
+      if (recaptchaRefMobile.current && widgetIdMobileRef.current === null) {
+        widgetIdMobileRef.current = window.grecaptcha.render(recaptchaRefMobile.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+        });
+      }
+      if (widgetIdDesktopRef.current !== null && widgetIdMobileRef.current !== null) {
         clearInterval(interval);
       }
     };
@@ -74,6 +88,19 @@ export default function Register() {
     tryRender();
     return () => clearInterval(interval);
   }, []);
+
+  const getRecaptchaToken = () => {
+    return (
+      window.grecaptcha?.getResponse(widgetIdDesktopRef.current) ||
+      window.grecaptcha?.getResponse(widgetIdMobileRef.current) ||
+      null
+    );
+  };
+
+  const resetRecaptcha = () => {
+    if (widgetIdDesktopRef.current !== null) window.grecaptcha?.reset(widgetIdDesktopRef.current);
+    if (widgetIdMobileRef.current !== null) window.grecaptcha?.reset(widgetIdMobileRef.current);
+  };
 
   const isPhoneValid   = /^09\d{9}$/.test(phoneNumber);
   const passwordsMatch = password === passwordConfirmation && passwordConfirmation !== "";
@@ -102,7 +129,7 @@ export default function Register() {
     if (!passwordsMatch) { setError("Passwords do not match"); return; }
     if (!allConsents)    { setError("Please accept all agreements before registering"); return; }
 
-    const recaptchaToken = window.grecaptcha?.getResponse(widgetIdRef.current);
+    const recaptchaToken = getRecaptchaToken();
     if (!recaptchaToken) { setError("Please complete the reCAPTCHA verification."); return; }
 
     setLoading(true);
@@ -112,7 +139,7 @@ export default function Register() {
       startCooldown();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send OTP. Please try again.");
-      window.grecaptcha?.reset(widgetIdRef.current);
+      resetRecaptcha();
     } finally {
       setLoading(false);
     }
@@ -259,7 +286,7 @@ export default function Register() {
   );
 
   // ── FORM STEP UI ─────────────────────────────────────────
-  const formContent = (
+  const formContent = (recaptchaFieldRef) => (
     <div className="px-7 py-5">
       <div className="text-center mb-4">
         <img src={logo} alt="TierHome" className="mx-auto h-9 w-auto object-contain mb-2" />
@@ -395,7 +422,7 @@ export default function Register() {
         </div>
 
         {/* reCAPTCHA */}
-        <div ref={recaptchaRef} className="flex justify-center" />
+        <div ref={recaptchaFieldRef} className="flex justify-center" />
 
         {/* SUBMIT */}
         <button type="submit" disabled={loading || !allConsents}
@@ -418,7 +445,7 @@ export default function Register() {
     </div>
   );
 
-  const content = step === "otp" ? otpContent : formContent;
+  const content = (recaptchaFieldRef) => step === "otp" ? otpContent : formContent(recaptchaFieldRef);
 
   return (
     <>
@@ -438,7 +465,7 @@ export default function Register() {
             </span>
             <div className="w-9" />
           </div>
-          <div className="overflow-y-auto flex-1">{content}</div>
+          <div className="overflow-y-auto flex-1">{content(recaptchaRefDesktop)}</div>
         </div>
       </div>
 
@@ -453,7 +480,7 @@ export default function Register() {
           </span>
           <div className="w-9" />
         </div>
-        <div className="flex-1 overflow-y-auto">{content}</div>
+        <div className="flex-1 overflow-y-auto">{content(recaptchaRefMobile)}</div>
       </div>
     </>
   );

@@ -24,16 +24,32 @@ export default function Login() {
 
   // ── reCAPTCHA v2 (explicit render — safer for a React modal that
   // mounts/unmounts, unlike the default auto-render meant for static pages) ──
-  const recaptchaRef = useRef(null);
-  const widgetIdRef = useRef(null);
+  // ── reCAPTCHA v2 (explicit render) — separate widget instances for
+  // desktop and mobile layouts. Both layouts render simultaneously in the
+  // DOM (CSS just hides one via Tailwind's sm: breakpoint), so a single
+  // ref/widget shared between both would only ever attach to one of them.
+  // Using two independent refs ensures whichever layout is actually
+  // visible always has a working, rendered checkbox.
+  const recaptchaRefDesktop = useRef(null);
+  const widgetIdDesktopRef = useRef(null);
+  const recaptchaRefMobile = useRef(null);
+  const widgetIdMobileRef = useRef(null);
 
   useEffect(() => {
     let interval;
     const tryRender = () => {
-      if (window.grecaptcha && window.grecaptcha.render && recaptchaRef.current && widgetIdRef.current === null) {
-        widgetIdRef.current = window.grecaptcha.render(recaptchaRef.current, {
+      if (!window.grecaptcha || !window.grecaptcha.render) return;
+      if (recaptchaRefDesktop.current && widgetIdDesktopRef.current === null) {
+        widgetIdDesktopRef.current = window.grecaptcha.render(recaptchaRefDesktop.current, {
           sitekey: RECAPTCHA_SITE_KEY,
         });
+      }
+      if (recaptchaRefMobile.current && widgetIdMobileRef.current === null) {
+        widgetIdMobileRef.current = window.grecaptcha.render(recaptchaRefMobile.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+        });
+      }
+      if (widgetIdDesktopRef.current !== null && widgetIdMobileRef.current !== null) {
         clearInterval(interval);
       }
     };
@@ -41,6 +57,21 @@ export default function Login() {
     tryRender();
     return () => clearInterval(interval);
   }, []);
+
+  // Returns whichever widget's checkbox was actually completed —
+  // only one is ever visible/usable at a time, depending on screen size.
+  const getRecaptchaToken = () => {
+    return (
+      window.grecaptcha?.getResponse(widgetIdDesktopRef.current) ||
+      window.grecaptcha?.getResponse(widgetIdMobileRef.current) ||
+      null
+    );
+  };
+
+  const resetRecaptcha = () => {
+    if (widgetIdDesktopRef.current !== null) window.grecaptcha?.reset(widgetIdDesktopRef.current);
+    if (widgetIdMobileRef.current !== null) window.grecaptcha?.reset(widgetIdMobileRef.current);
+  };
 
   // ✅ Deactivation popup — triggered by a failed login OR by the global
   // interceptor redirecting a mid-session user here after a 403.
@@ -66,7 +97,7 @@ export default function Login() {
     setShowDeactivated(false);
     setReactivationMsg(null);
 
-    const recaptchaToken = window.grecaptcha?.getResponse(widgetIdRef.current);
+    const recaptchaToken = getRecaptchaToken();
     if (!recaptchaToken) {
       setError("Please complete the reCAPTCHA verification.");
       setLoading(false);
@@ -102,7 +133,7 @@ export default function Login() {
         const backendMessage = err.response?.data?.message;
         setError(backendMessage || "Invalid email or password");
       }
-      window.grecaptcha?.reset(widgetIdRef.current);
+      resetRecaptcha();
     } finally {
       setLoading(false);
     }
@@ -125,7 +156,7 @@ export default function Login() {
   // =============================================
   // SHARED FORM — not a sub-component
   // =============================================
-  const formContent = (
+  const formContent = (recaptchaFieldRef) => (
     <div className="px-8 py-6">
       {/* LOGO */}
       <div className="text-center mb-5">
@@ -259,7 +290,7 @@ export default function Login() {
         </div>
 
         {/* reCAPTCHA */}
-        <div ref={recaptchaRef} className="flex justify-center" />
+        <div ref={recaptchaFieldRef} className="flex justify-center" />
 
         {/* SUBMIT */}
         <button
@@ -329,7 +360,7 @@ export default function Login() {
             </span>
             <div className="w-9" />
           </div>
-          {formContent}
+          {formContent(recaptchaRefDesktop)}
         </div>
       </div>
 
@@ -346,7 +377,7 @@ export default function Login() {
           <span className="text-[15px] font-bold text-gray-800">Log in</span>
           <div className="w-9" />
         </div>
-        <div className="flex-1 overflow-y-auto">{formContent}</div>
+        <div className="flex-1 overflow-y-auto">{formContent(recaptchaRefMobile)}</div>
       </div>
     </>
   );

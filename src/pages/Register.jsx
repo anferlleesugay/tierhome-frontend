@@ -278,7 +278,7 @@ export default function Register() {
         </div>
       )}
 
-      <form onSubmit={handleSendOtp} className="space-y-3">
+      <form onSubmit={handleSendOtp} className="space-y-2.5">
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Last Name</label>
@@ -314,47 +314,49 @@ export default function Register() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Password</label>
-          <div className="relative">
-            <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type={showPass ? "text" : "password"} required placeholder="Min. 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} className={`${inputClass} h-[44px] pl-8 pr-9`} />
-            <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              {showPass ? <EyeOff size={13} /> : <Eye size={13} />}
-            </button>
-          </div>
-          {password && (
-            <div className="mt-1">
-              <div className="flex gap-1">
-                {[1,2,3,4].map((i) => (
-                  <div key={i} className={`h-1 flex-1 rounded-full transition-all ${strength >= i ? strengthColors[strength] : "bg-gray-200"}`} />
-                ))}
-              </div>
-              <p className="text-[10px] text-gray-500 mt-0.5">Strength: <span className="font-semibold">{strengthText[strength]}</span></p>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Password</label>
+            <div className="relative">
+              <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input type={showPass ? "text" : "password"} required placeholder="Min. 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} className={`${inputClass} h-[44px] pl-8 pr-9`} />
+              <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showPass ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
             </div>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Confirm Password</label>
-          <div className="relative">
-            <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type={showConfirm ? "text" : "password"} required placeholder="Re-enter password"
-              value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)}
-              className={`w-full h-[44px] bg-[#f8fafc] rounded-xl text-sm text-gray-800 outline-none transition-all pl-8 pr-9 border focus:bg-white ${
-                passwordConfirmation === "" ? "border-gray-200 focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10"
-                : passwordsMatch ? "border-green-500 focus:ring-2 focus:ring-green-200"
-                : "border-red-400 focus:ring-2 focus:ring-red-200"
-              }`}
-            />
-            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              {showConfirm ? <EyeOff size={13} /> : <Eye size={13} />}
-            </button>
+            {password && (
+              <div className="mt-1">
+                <div className="flex gap-1">
+                  {[1,2,3,4].map((i) => (
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-all ${strength >= i ? strengthColors[strength] : "bg-gray-200"}`} />
+                  ))}
+                </div>
+                <p className="text-[10px] text-gray-500 mt-0.5">Strength: <span className="font-semibold">{strengthText[strength]}</span></p>
+              </div>
+            )}
           </div>
-          {passwordConfirmation && !passwordsMatch && (
-            <p className="text-[10px] text-red-500 mt-0.5">Passwords do not match</p>
-          )}
+
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Confirm Password</label>
+            <div className="relative">
+              <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type={showConfirm ? "text" : "password"} required placeholder="Re-enter password"
+                value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)}
+                className={`w-full h-[44px] bg-[#f8fafc] rounded-xl text-sm text-gray-800 outline-none transition-all pl-8 pr-9 border focus:bg-white ${
+                  passwordConfirmation === "" ? "border-gray-200 focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10"
+                  : passwordsMatch ? "border-green-500 focus:ring-2 focus:ring-green-200"
+                  : "border-red-400 focus:ring-2 focus:ring-red-200"
+                }`}
+              />
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showConfirm ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
+            </div>
+            {passwordConfirmation && !passwordsMatch && (
+              <p className="text-[10px] text-red-500 mt-0.5">Passwords do not match</p>
+            )}
+          </div>
         </div>
 
         <div>
@@ -426,7 +428,7 @@ export default function Register() {
 
       <div className="hidden sm:flex fixed inset-0 z-50 items-start justify-center px-4 py-8 overflow-y-auto"
         style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
-        <div className="relative w-full max-w-[480px] bg-white rounded-2xl shadow-2xl my-auto">
+        <div className="relative w-full max-w-[540px] bg-white rounded-2xl shadow-2xl my-auto">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <button onClick={handleClose} className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
               <X size={18} className="text-gray-700" />

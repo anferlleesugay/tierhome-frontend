@@ -274,7 +274,7 @@ export default function Login() {
       </form>
 
       <p className="text-center text-[11px] text-gray-400 mt-4">
-        Trusted by tenants and landlords in Angeles City
+        Trusted by tenants and property owners in Angeles City
       </p>
       <div className="flex justify-center gap-3 text-[11px] text-gray-500 font-medium mt-1">
         {listingCount !== null && (

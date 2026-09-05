@@ -21,6 +21,16 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [listingCount, setListingCount] = useState(null);
+
+  // Real, live listing count — replaces the previous hardcoded "500+"
+  // marketing text with an honest, dynamic number pulled from the actual
+  // platform inventory.
+  useEffect(() => {
+    axios.get(`${API}/listings/count`)
+      .then((res) => setListingCount(res.data?.data?.count ?? null))
+      .catch(() => setListingCount(null));
+  }, []);
 
   // reCAPTCHA v3 (invisible, score-based) - no checkbox widget. A fresh
   // token is generated right before each submit via grecaptcha.execute(),
@@ -267,9 +277,13 @@ export default function Login() {
         Trusted by tenants and landlords in Angeles City
       </p>
       <div className="flex justify-center gap-3 text-[11px] text-gray-500 font-medium mt-1">
-        <span>500+ Listings</span>
-        <span>•</span>
-        <span>100% Verified</span>
+        {listingCount !== null && (
+          <>
+            <span>{listingCount} Listings</span>
+            <span>•</span>
+          </>
+        )}
+        <span>Verified Listings</span>
         <span>•</span>
         <span>Free to Use</span>
       </div>

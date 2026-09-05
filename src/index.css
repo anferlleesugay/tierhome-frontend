@@ -6,6 +6,15 @@
   font-family: 'Inter', sans-serif;
 }
 
+/* reCAPTCHA v3's floating badge is redundant with (and visually collides
+   with) the chatbot widget in the same corner. Google's terms allow hiding
+   the badge as long as the required attribution text is shown visibly
+   elsewhere on any page using reCAPTCHA — see the disclosure text under
+   the submit button on Login.jsx and Register.jsx. */
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
 /* ===== ANIMATIONS ===== */
 
 @keyframes slideUp {
@@ -82,4 +91,3 @@
 .animate-fade-in {
   animation: fadeInUp 0.25s ease-out forwards;
 }
- 

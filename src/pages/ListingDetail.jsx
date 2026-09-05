@@ -58,6 +58,23 @@ export default function ListingDetail() {
   const [loading,    setLoading]    = useState(true);
   const [notAllowed, setNotAllowed] = useState(null); // error message
 
+  // ── Tracks actual viewport width so only ONE photo gallery (mobile or
+  // desktop) ever mounts in the DOM. Previously both galleries existed
+  // simultaneously with only CSS (`md:hidden` / `hidden md:block`) toggling
+  // visibility — standard <img> tags still fetch their src regardless of
+  // CSS display state, so every listing photo was silently downloaded
+  // twice on every page load. Conditionally mounting only the relevant
+  // gallery means the hidden one's images are never requested at all.
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 768px)").matches : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   // gallery states
   const [showReserveModal, setShowReserveModal] = useState(false);
   const [reserveStep,      setReserveStep]      = useState("terms"); // terms | form | success
@@ -254,7 +271,8 @@ const handlePay = async () => {
     <div className="bg-[#fafafa] min-h-full pb-24">
 
       {/* ================= MOBILE GALLERY + BACK ================= */}
-      <div className="md:hidden relative">
+      {!isDesktop && (
+      <div className="relative">
 
         {/* BACK BUTTON */}
         <button
@@ -290,6 +308,7 @@ const handlePay = async () => {
           {mobileIndex + 1} / {images.length}
         </div>
       </div>
+      )}
 
       {/* ================= DESKTOP HEADER ================= */}
       <div className="hidden md:block max-w-7xl mx-auto px-6 pt-6">
@@ -309,6 +328,7 @@ const handlePay = async () => {
         </div>
 
         {/* DESKTOP GALLERY */}
+        {isDesktop && (
         <div className="grid grid-cols-4 gap-2 rounded-2xl overflow-hidden mt-6 h-[460px] relative">
           {images.map((img, i) => (
             <img
@@ -329,6 +349,7 @@ const handlePay = async () => {
             View all photos
           </button>
         </div>
+        )}
       </div>
 
       {/* ================= CONTENT ================= */}

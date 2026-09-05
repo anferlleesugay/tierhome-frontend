@@ -3,6 +3,7 @@ import { useRef, useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import logo from "../assets/logo.png";
 import heroVideo from "../assets/hero-video.mp4";
+import Footer from "../components/Footer";
 
 const FADE_DURATION = 1; // seconds — how long the crossfade transition takes
 
@@ -83,6 +84,7 @@ export default function Welcome() {
   const activeIsA = activeIsARef.current;
 
   return (
+    <>
     <div className="relative h-[calc(100dvh-80px)] w-full overflow-hidden flex items-center justify-center">
 
       {/* BACKGROUND VIDEO — two layered copies, crossfaded to mask the loop cut */}
@@ -137,5 +139,7 @@ export default function Welcome() {
         </button>
       </div>
     </div>
+    <Footer />
+    </>
   );
 }

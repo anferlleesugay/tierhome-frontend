@@ -1,6 +1,6 @@
 // FILE: src/pages/Login.jsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, X, UserX, CheckCircle, Loader } from "lucide-react";
@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import logo from "../assets/logo.png";
 
 const API = import.meta.env.VITE_API_URL;
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,6 +21,26 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // ── reCAPTCHA v2 (explicit render — safer for a React modal that
+  // mounts/unmounts, unlike the default auto-render meant for static pages) ──
+  const recaptchaRef = useRef(null);
+  const widgetIdRef = useRef(null);
+
+  useEffect(() => {
+    let interval;
+    const tryRender = () => {
+      if (window.grecaptcha && window.grecaptcha.render && recaptchaRef.current && widgetIdRef.current === null) {
+        widgetIdRef.current = window.grecaptcha.render(recaptchaRef.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+        });
+        clearInterval(interval);
+      }
+    };
+    interval = setInterval(tryRender, 200);
+    tryRender();
+    return () => clearInterval(interval);
+  }, []);
 
   // ✅ Deactivation popup — triggered by a failed login OR by the global
   // interceptor redirecting a mid-session user here after a 403.
@@ -44,10 +65,19 @@ export default function Login() {
     setError("");
     setShowDeactivated(false);
     setReactivationMsg(null);
+
+    const recaptchaToken = window.grecaptcha?.getResponse(widgetIdRef.current);
+    if (!recaptchaToken) {
+      setError("Please complete the reCAPTCHA verification.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await axios.post(`${API}/auth/login`, {
         email,
         password,
+        recaptcha_token: recaptchaToken,
       });
       const token = res.data?.data?.token;
       const user = res.data?.data?.user;
@@ -72,6 +102,7 @@ export default function Login() {
         const backendMessage = err.response?.data?.message;
         setError(backendMessage || "Invalid email or password");
       }
+      window.grecaptcha?.reset(widgetIdRef.current);
     } finally {
       setLoading(false);
     }
@@ -226,6 +257,9 @@ export default function Login() {
             </span>
           </div>
         </div>
+
+        {/* reCAPTCHA */}
+        <div ref={recaptchaRef} className="flex justify-center" />
 
         {/* SUBMIT */}
         <button

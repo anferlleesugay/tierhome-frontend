@@ -1,6 +1,6 @@
 // FILE: src/pages/Register.jsx
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
@@ -14,6 +14,7 @@ import EulaModal from "../components/modals/EulaModal";
 import logo from "../assets/logo.png";
 
 const API = import.meta.env.VITE_API_URL;
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 export default function Register() {
   const navigate  = useNavigate();
@@ -54,6 +55,26 @@ export default function Register() {
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState("");
 
+  // ── reCAPTCHA v2 (explicit render — safer for a React modal that
+  // mounts/unmounts, unlike the default auto-render meant for static pages) ──
+  const recaptchaRef = useRef(null);
+  const widgetIdRef = useRef(null);
+
+  useEffect(() => {
+    let interval;
+    const tryRender = () => {
+      if (window.grecaptcha && window.grecaptcha.render && recaptchaRef.current && widgetIdRef.current === null) {
+        widgetIdRef.current = window.grecaptcha.render(recaptchaRef.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+        });
+        clearInterval(interval);
+      }
+    };
+    interval = setInterval(tryRender, 200);
+    tryRender();
+    return () => clearInterval(interval);
+  }, []);
+
   const isPhoneValid   = /^09\d{9}$/.test(phoneNumber);
   const passwordsMatch = password === passwordConfirmation && passwordConfirmation !== "";
   const allConsents    = termsAccepted && privacyAccepted && dataPrivacyAccepted && ageConfirmed;
@@ -81,13 +102,17 @@ export default function Register() {
     if (!passwordsMatch) { setError("Passwords do not match"); return; }
     if (!allConsents)    { setError("Please accept all agreements before registering"); return; }
 
+    const recaptchaToken = window.grecaptcha?.getResponse(widgetIdRef.current);
+    if (!recaptchaToken) { setError("Please complete the reCAPTCHA verification."); return; }
+
     setLoading(true);
     try {
-      await axios.post(`${API}/auth/send-otp`, { email, first_name: firstName });
+      await axios.post(`${API}/auth/send-otp`, { email, first_name: firstName, recaptcha_token: recaptchaToken });
       setStep("otp");
       startCooldown();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send OTP. Please try again.");
+      window.grecaptcha?.reset(widgetIdRef.current);
     } finally {
       setLoading(false);
     }
@@ -368,6 +393,9 @@ export default function Register() {
           <ConsentCheckbox checked={dataPrivacyAccepted} onChange={setDataPrivacyAccepted} label="I consent to collection and processing of my personal data under the" linkText="Data Privacy Act of 2012 (RA 10173)" onReadMore={() => { setModalType("dataPrivacy"); setEulaModalOpen(true); }} />
           <ConsentCheckbox checked={ageConfirmed}        onChange={setAgeConfirmed}        label="I confirm that I am" linkText="at least 18 years of age"           onReadMore={null} />
         </div>
+
+        {/* reCAPTCHA */}
+        <div ref={recaptchaRef} className="flex justify-center" />
 
         {/* SUBMIT */}
         <button type="submit" disabled={loading || !allConsents}

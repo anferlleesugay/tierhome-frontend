@@ -22,7 +22,8 @@ export default function Register() {
   const background = location.state?.background;
   const { login } = useAuth();
 
-  const [step, setStep] = useState("form");
+  // Steps: "form1" (personal info) -> "form2" (password/role/consent) -> "otp" -> "done"
+  const [step, setStep] = useState("form1");
 
   const [lastName,             setLastName]             = useState("");
   const [firstName,            setFirstName]            = useState("");
@@ -69,6 +70,8 @@ export default function Register() {
   };
 
   const isPhoneValid   = /^09\d{9}$/.test(phoneNumber);
+  const isEmailValid   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const step1Valid     = lastName.trim() && firstName.trim() && isPhoneValid && isEmailValid;
   const passwordsMatch = password === passwordConfirmation && passwordConfirmation !== "";
   const allConsents    = termsAccepted && privacyAccepted && dataPrivacyAccepted && ageConfirmed;
 
@@ -86,11 +89,19 @@ export default function Register() {
 
   const handleClose = () => navigate(background?.pathname || "/");
 
+  const handleContinueToStep2 = (e) => {
+    e.preventDefault();
+    setError("");
+    if (!lastName.trim() || !firstName.trim()) { setError("Please enter your full name"); return; }
+    if (!isPhoneValid)  { setError("Phone number must start with 09 and be 11 digits"); return; }
+    if (!isEmailValid)  { setError("Please enter a valid email address"); return; }
+    setStep("form2");
+  };
+
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!isPhoneValid)   { setError("Phone number must start with 09 and be 11 digits"); return; }
     if (!passwordsMatch) { setError("Passwords do not match"); return; }
     if (!allConsents)    { setError("Please accept all agreements before registering"); return; }
 
@@ -251,7 +262,7 @@ export default function Register() {
 
         <button
           type="button"
-          onClick={() => { setStep("form"); setOtpCode(""); setError(""); }}
+          onClick={() => { setStep("form2"); setOtpCode(""); setError(""); }}
           className="w-full flex items-center justify-center gap-2 text-[13px] text-gray-500 hover:text-gray-700 transition"
         >
           <ArrowLeft size={14} /> Back to registration
@@ -260,7 +271,8 @@ export default function Register() {
     </div>
   );
 
-  const formContent = (
+  // ── STEP 1: Personal Info ────────────────────────────────
+  const step1Content = (
     <div className="px-7 py-5">
       <div className="text-center mb-4">
         <img src={logo} alt="TierHome" className="mx-auto h-9 w-auto object-contain mb-2" />
@@ -268,7 +280,7 @@ export default function Register() {
           Angeles City Housing Platform
         </span>
         <h2 className="text-[20px] font-bold text-gray-900 mb-0.5">Create Account</h2>
-        <p className="text-[13px] text-gray-500">Join TierHome to find your perfect home</p>
+        <p className="text-[13px] text-gray-500">Step 1 of 2 — Your personal information</p>
       </div>
 
       {error && (
@@ -278,7 +290,7 @@ export default function Register() {
         </div>
       )}
 
-      <form onSubmit={handleSendOtp} className="space-y-2.5">
+      <form onSubmit={handleContinueToStep2} className="space-y-3">
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Last Name</label>
@@ -314,6 +326,43 @@ export default function Register() {
           </div>
         </div>
 
+        <button type="submit" disabled={!step1Valid}
+          className="w-full h-[48px] rounded-xl text-white font-bold text-[14px] transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+          style={{
+            background: !step1Valid ? "#86a886" : "linear-gradient(135deg, #3d6b35 0%, #2d5a27 100%)",
+            boxShadow:  !step1Valid ? "none" : "0 4px 15px rgba(61,107,53,0.35)",
+            cursor:     !step1Valid ? "not-allowed" : "pointer",
+          }}>
+          Continue →
+        </button>
+      </form>
+
+      <p className="text-center text-[13px] text-gray-500 mt-3">
+        Already have an account?{" "}
+        <span onClick={() => navigate("/login", { state: { background } })} className="font-semibold cursor-pointer hover:underline" style={{ color: "#3d6b35" }}>
+          Sign in
+        </span>
+      </p>
+    </div>
+  );
+
+  // ── STEP 2: Password, Role, Consent ──────────────────────
+  const step2Content = (
+    <div className="px-7 py-5">
+      <div className="text-center mb-4">
+        <img src={logo} alt="TierHome" className="mx-auto h-9 w-auto object-contain mb-2" />
+        <h2 className="text-[20px] font-bold text-gray-900 mb-0.5">Secure Your Account</h2>
+        <p className="text-[13px] text-gray-500">Step 2 of 2 — Password and agreements</p>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-2.5 rounded-xl mb-3">
+          <AlertCircle size={14} className="shrink-0" />
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSendOtp} className="space-y-2.5">
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Password</label>
@@ -400,27 +449,30 @@ export default function Register() {
           apply.
         </p>
 
-        <button type="submit" disabled={loading || !allConsents}
+        <button type="submit" disabled={loading || !allConsents || !passwordsMatch}
           className="w-full h-[48px] rounded-xl text-white font-bold text-[14px] transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           style={{
-            background: loading || !allConsents ? "#86a886" : "linear-gradient(135deg, #3d6b35 0%, #2d5a27 100%)",
-            boxShadow:  loading || !allConsents ? "none" : "0 4px 15px rgba(61,107,53,0.35)",
-            cursor:     loading || !allConsents ? "not-allowed" : "pointer",
+            background: loading || !allConsents || !passwordsMatch ? "#86a886" : "linear-gradient(135deg, #3d6b35 0%, #2d5a27 100%)",
+            boxShadow:  loading || !allConsents || !passwordsMatch ? "none" : "0 4px 15px rgba(61,107,53,0.35)",
+            cursor:     loading || !allConsents || !passwordsMatch ? "not-allowed" : "pointer",
           }}>
           {loading ? <><Loader size={16} className="animate-spin" /> Sending code...</> : "Continue →"}
         </button>
-      </form>
 
-      <p className="text-center text-[13px] text-gray-500 mt-3">
-        Already have an account?{" "}
-        <span onClick={() => navigate("/login", { state: { background } })} className="font-semibold cursor-pointer hover:underline" style={{ color: "#3d6b35" }}>
-          Sign in
-        </span>
-      </p>
+        <button
+          type="button"
+          onClick={() => { setStep("form1"); setError(""); }}
+          className="w-full flex items-center justify-center gap-2 text-[13px] text-gray-500 hover:text-gray-700 transition"
+        >
+          <ArrowLeft size={14} /> Back
+        </button>
+      </form>
     </div>
   );
 
-  const content = step === "otp" ? otpContent : formContent;
+  const content = step === "otp" ? otpContent : step === "form2" ? step2Content : step1Content;
+
+  const headerTitle = step === "otp" ? "Verify Email" : step === "form2" ? "Secure Your Account" : "Create account";
 
   return (
     <>
@@ -434,7 +486,7 @@ export default function Register() {
               <X size={18} className="text-gray-700" />
             </button>
             <span className="text-[14px] font-bold text-gray-800">
-              {step === "otp" ? "Verify Email" : "Create account"}
+              {headerTitle}
             </span>
             <div className="w-9" />
           </div>
@@ -448,7 +500,7 @@ export default function Register() {
             <X size={20} className="text-gray-700" />
           </button>
           <span className="text-[15px] font-bold text-gray-800">
-            {step === "otp" ? "Verify Email" : "Create account"}
+            {headerTitle}
           </span>
           <div className="w-9" />
         </div>

@@ -594,7 +594,7 @@ export default function LandlordListings() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <h1 className="text-2xl md:text-3xl font-bold">Your Listings</h1>
           <button
-            onClick={() => showForm ? resetForm() : setShowForm(true)}
+            onClick={() => { resetForm(); setShowForm(true); }}
             className="flex items-center gap-2 bg-[#3d6b35] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2d5525] transition"
           >
             <Plus size={20} />

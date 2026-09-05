@@ -398,11 +398,9 @@ export default function Register() {
 
       {/* DESKTOP */}
       <div className="hidden sm:flex fixed inset-0 z-50 items-center justify-center px-4"
-        style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
-        onClick={handleClose}>
+        style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
         <div className="relative w-full max-w-[480px] bg-white rounded-2xl shadow-2xl"
-          style={{ maxHeight: "90vh", display: "flex", flexDirection: "column" }}
-          onClick={(e) => e.stopPropagation()}>
+          style={{ maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
             <button onClick={handleClose} className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
               <X size={18} className="text-gray-700" />

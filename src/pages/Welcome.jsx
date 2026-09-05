@@ -1,17 +1,20 @@
+// FILE: src/pages/Welcome.jsx
+
 import { useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
+import axios from "axios";
 import { ArrowRight } from "lucide-react";
 import logo from "../assets/logo.png";
-import heroVideo from "../assets/hero-video.mp4";
 import Footer from "../components/Footer";
 
-const FADE_DURATION = 1; // seconds — how long the crossfade transition takes
+const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+const SLIDE_DURATION = 8000; // ms each photo stays on screen (matches the CSS animation length)
+const FADE_DURATION = 1200;  // ms crossfade between photos
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const videoARef = useRef(null);
 
-  // ✅ Force-disable page scroll while this screen is showing, regardless of
+  // Force-disable page scroll while this screen is showing, regardless of
   // any height-calculation edge cases (navbar height changes, mobile browser
   // chrome, etc.) — guarantees a truly fixed, non-scrollable hero screen.
   useEffect(() => {
@@ -20,94 +23,74 @@ export default function Welcome() {
       document.body.style.overflow = "";
     };
   }, []);
-  const videoBRef = useRef(null);
-  const activeIsARef = useRef(true); // which video is currently visible/active
-  const [, forceRender] = useState(0);
 
+  const [photos, setPhotos] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [fadeKey, setFadeKey] = useState(0); // forces the Ken Burns animation to restart per slide
+
+  // Pull a handful of real, verified listing photos for the hero — replaces
+  // the previous 30MB autoplay video, which was the actual cause of the
+  // homepage hero intermittently failing to load on slower connections.
   useEffect(() => {
-    const videoA = videoARef.current;
-    const videoB = videoBRef.current;
-    if (!videoA || !videoB) return;
-
-    let timeoutId;
     let cancelled = false;
+    const fetchHeroPhotos = async () => {
+      try {
+        const res = await axios.get(`${API}/listings`);
+        const raw = res.data?.data?.data || [];
+        const STORAGE = `${API.replace("/api", "")}/storage/`;
 
-    const runCycle = () => {
-      if (cancelled) return;
+        const withPhotos = raw
+          .filter((l) => l.images?.length > 0 || l.image)
+          .slice(0, 5)
+          .map((l) => (l.images?.[0]?.image_path ? STORAGE + l.images[0].image_path : STORAGE + l.image));
 
-      const activeVideo   = activeIsARef.current ? videoA : videoB;
-      const inactiveVideo = activeIsARef.current ? videoB : videoA;
-
-      const startCycle = () => {
-        const duration = activeVideo.duration;
-        if (!duration || !isFinite(duration)) return;
-
-        const msUntilFade = Math.max(0, (duration - FADE_DURATION) * 1000);
-
-        timeoutId = setTimeout(() => {
-          if (cancelled) return;
-
-          // Start the inactive video from the beginning, just before the swap
-          inactiveVideo.currentTime = 0;
-          inactiveVideo.play().catch(() => {});
-
-          // Flip which one is "active" — triggers the CSS opacity crossfade
-          activeIsARef.current = !activeIsARef.current;
-          forceRender((n) => n + 1);
-
-          // After the fade completes, pause the now-hidden video and schedule the next cycle
-          timeoutId = setTimeout(() => {
-            if (cancelled) return;
-            activeVideo.pause();
-            runCycle();
-          }, FADE_DURATION * 1000);
-        }, msUntilFade);
-      };
-
-      if (activeVideo.readyState >= 1) {
-        startCycle();
-      } else {
-        activeVideo.addEventListener("loadedmetadata", startCycle, { once: true });
+        if (!cancelled && withPhotos.length > 0) {
+          setPhotos(withPhotos);
+        }
+      } catch (err) {
+        console.error("Hero photo fetch failed:", err);
+        // Silently falls back to the gradient-only background below —
+        // never blocks the page or shows a broken-image state.
       }
     };
-
-    videoA.play().catch(() => {});
-    runCycle();
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timeoutId);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchHeroPhotos();
+    return () => { cancelled = true; };
   }, []);
 
-  const activeIsA = activeIsARef.current;
+  useEffect(() => {
+    if (photos.length === 0) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % photos.length);
+      setFadeKey((k) => k + 1);
+    }, SLIDE_DURATION);
+    return () => clearInterval(interval);
+  }, [photos]);
 
   return (
     <>
-    <div className="relative h-[calc(100dvh-80px)] w-full overflow-hidden flex items-center justify-center">
+    <div className="relative h-[calc(100dvh-80px)] w-full overflow-hidden flex items-center justify-center bg-[#1a2e17]">
 
-      {/* BACKGROUND VIDEO — two layered copies, crossfaded to mask the loop cut */}
-      <video
-        ref={videoARef}
-        muted
-        playsInline
-        preload="auto"
-        className="absolute inset-0 w-full h-full object-cover transition-opacity ease-linear"
-        style={{ opacity: activeIsA ? 1 : 0, transitionDuration: `${FADE_DURATION}s` }}
-      >
-        <source src={heroVideo} type="video/mp4" />
-      </video>
-      <video
-        ref={videoBRef}
-        muted
-        playsInline
-        preload="none"
-        className="absolute inset-0 w-full h-full object-cover transition-opacity ease-linear"
-        style={{ opacity: activeIsA ? 0 : 1, transitionDuration: `${FADE_DURATION}s` }}
-      >
-        <source src={heroVideo} type="video/mp4" />
-      </video>
+      {/* HERO PHOTOS — real verified TierHome listings, Ken Burns zoom/pan,
+          crossfaded between slides. Falls back to a plain dark-green
+          background (already set above) if the fetch fails or returns
+          nothing, so the hero never shows a broken/blank state. */}
+      {photos.map((src, i) => (
+        <div
+          key={i}
+          className="absolute inset-0 transition-opacity ease-linear"
+          style={{
+            opacity: i === activeIndex ? 1 : 0,
+            transitionDuration: `${FADE_DURATION}ms`,
+          }}
+        >
+          <img
+            key={i === activeIndex ? fadeKey : `static-${i}`}
+            src={src}
+            alt=""
+            className={`w-full h-full object-cover ${i === activeIndex ? (fadeKey % 2 === 0 ? "hero-kenburns-a" : "hero-kenburns-b") : ""}`}
+          />
+        </div>
+      ))}
 
       {/* DARK GRADIENT OVERLAY for text readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />

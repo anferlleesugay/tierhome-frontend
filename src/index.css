@@ -15,6 +15,23 @@
   visibility: hidden;
 }
 
+/* Ken Burns hero photo effect — slow zoom + pan on each slide, alternating
+   direction between consecutive photos so the motion never feels repetitive. */
+@keyframes kenburns-a {
+  0%   { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.15) translate(-3%, -2%); }
+}
+@keyframes kenburns-b {
+  0%   { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.15) translate(3%, 2%); }
+}
+.hero-kenburns-a {
+  animation: kenburns-a 8s ease-out forwards;
+}
+.hero-kenburns-b {
+  animation: kenburns-b 8s ease-out forwards;
+}
+
 /* ===== ANIMATIONS ===== */
 
 @keyframes slideUp {

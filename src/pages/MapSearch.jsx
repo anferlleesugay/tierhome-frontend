@@ -45,6 +45,8 @@ export default function MapSearch() {
   const [selectedListing,  setSelectedListing]  = useState(null);
   const [loading,          setLoading]          = useState(false);
   const [searchRadius,     setSearchRadius]     = useState(3);
+  const searchRadiusRef = useRef(searchRadius);
+  useEffect(() => { searchRadiusRef.current = searchRadius; }, [searchRadius]);
   const [userLocation,     setUserLocation]     = useState({ lat: 15.3202, lng: 120.6205 });
   const [searchInput,      setSearchInput]      = useState("");
   const [suggestions,      setSuggestions]      = useState([]);
@@ -86,7 +88,7 @@ export default function MapSearch() {
         setUserLocation(newLoc);
         updateCircle(newLoc);
         reverseGeocode(pos.lat(), pos.lng());
-        fetchListings(pos.lat(), pos.lng(), searchRadius);
+        fetchListings(pos.lat(), pos.lng(), searchRadiusRef.current);
       });
 
       userMark.current = uMark;
@@ -117,7 +119,7 @@ export default function MapSearch() {
   const updateCircle = (loc) => {
     if (circleRef.current) {
       circleRef.current.setCenter(loc);
-      circleRef.current.setRadius(searchRadius * 1000);
+      circleRef.current.setRadius(searchRadiusRef.current * 1000);
     }
   };
 
@@ -127,7 +129,7 @@ export default function MapSearch() {
     setUserLocation(newLoc);
     updateCircle(newLoc);
     reverseGeocode(newLoc.lat, newLoc.lng);
-    fetchListings(newLoc.lat, newLoc.lng, searchRadius);
+    fetchListings(newLoc.lat, newLoc.lng, searchRadiusRef.current);
   };
 
   const reverseGeocode = (lat, lng) => {

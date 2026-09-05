@@ -92,8 +92,11 @@ function MapLocationPicker({ onLocationSelect, initialLat, initialLng }) {
     if (initializedRef.current || !mapRef.current || !window.google) return;
     initializedRef.current = true;
 
-    const defaultLat = parseFloat(initialLat) || 14.5995;
-    const defaultLng = parseFloat(initialLng) || 120.9842;
+    // Angeles City, Pampanga — matches the coordinates used as the default
+    // in MapSearch.jsx, so every map in the app opens on the correct city
+    // by default instead of Metro Manila's generic coordinates.
+    const defaultLat = parseFloat(initialLat) || 15.3202;
+    const defaultLng = parseFloat(initialLng) || 120.6205;
 
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 15,

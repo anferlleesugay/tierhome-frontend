@@ -44,7 +44,7 @@ function Card({ children }) {
 
 // delta = month-over-month % change — Client 2 (Q16) specifically asked for this comparison
 // on the platform-operator's "healthy at a glance" numbers
-function QuickStatCard({ icon: Icon, label, value, sublabel, delta, color, onClick }) {
+function QuickStatCard({ icon: Icon, label, value, sublabel, delta, color, onClick, secondaryLine }) {
   return (
     <button
       onClick={onClick}
@@ -68,6 +68,9 @@ function QuickStatCard({ icon: Icon, label, value, sublabel, delta, color, onCli
           </span>
         )}
       </div>
+      {secondaryLine && (
+        <p className="text-[11px] text-white/70 mt-1 pt-1 border-t border-white/15">{secondaryLine}</p>
+      )}
     </button>
   );
 }
@@ -157,6 +160,7 @@ export default function AdminDashboard() {
               color="#d97706" />
             <QuickStatCard icon={Wallet} label="Platform Revenue" value={formatPeso(widgets.stats.revenue_this_month)}
               delta={widgets.stats.revenue_change_pct} sublabel="this month"
+              secondaryLine={`${formatPeso(widgets.stats.revenue_all_time)} all-time`}
               color="#7c3aed" onClick={() => navigate("/admin/revenue-by-owner")} />
             <QuickStatCard icon={Search} label="Total Searches" value={widgets.stats.total_searches}
               color="#0284c7" />

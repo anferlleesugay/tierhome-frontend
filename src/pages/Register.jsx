@@ -1,6 +1,6 @@
 // FILE: src/pages/Register.jsx
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
@@ -22,10 +22,8 @@ export default function Register() {
   const background = location.state?.background;
   const { login } = useAuth();
 
-  // ── Steps: "form" → "otp" → "done" ─────────────────────
   const [step, setStep] = useState("form");
 
-  // ── Form fields ──────────────────────────────────────────
   const [lastName,             setLastName]             = useState("");
   const [firstName,            setFirstName]            = useState("");
   const [middleInitial,        setMiddleInitial]        = useState("");
@@ -35,7 +33,6 @@ export default function Register() {
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [role,                 setRole]                 = useState("tenant");
 
-  // ── Consent ──────────────────────────────────────────────
   const [termsAccepted,       setTermsAccepted]       = useState(false);
   const [privacyAccepted,     setPrivacyAccepted]     = useState(false);
   const [dataPrivacyAccepted, setDataPrivacyAccepted] = useState(false);
@@ -43,63 +40,32 @@ export default function Register() {
   const [eulaModalOpen,       setEulaModalOpen]       = useState(false);
   const [modalType,           setModalType]           = useState(null);
 
-  // ── OTP ──────────────────────────────────────────────────
   const [otpCode,    setOtpCode]    = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [resending,  setResending]  = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // ── UI ───────────────────────────────────────────────────
   const [showPass,    setShowPass]    = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState("");
 
-  // ── reCAPTCHA v2 (explicit render — safer for a React modal that
-  // mounts/unmounts, unlike the default auto-render meant for static pages) ──
-  // ── reCAPTCHA v2 (explicit render) — separate widget instances for
-  // desktop and mobile layouts. Both layouts render simultaneously in the
-  // DOM (CSS just hides one via Tailwind's sm: breakpoint), so a single
-  // ref/widget shared between both would only ever attach to one of them.
-  const recaptchaRefDesktop = useRef(null);
-  const widgetIdDesktopRef = useRef(null);
-  const recaptchaRefMobile = useRef(null);
-  const widgetIdMobileRef = useRef(null);
-
-  useEffect(() => {
-    let interval;
-    const tryRender = () => {
-      if (!window.grecaptcha || !window.grecaptcha.render) return;
-      if (recaptchaRefDesktop.current && widgetIdDesktopRef.current === null) {
-        widgetIdDesktopRef.current = window.grecaptcha.render(recaptchaRefDesktop.current, {
-          sitekey: RECAPTCHA_SITE_KEY,
-        });
-      }
-      if (recaptchaRefMobile.current && widgetIdMobileRef.current === null) {
-        widgetIdMobileRef.current = window.grecaptcha.render(recaptchaRefMobile.current, {
-          sitekey: RECAPTCHA_SITE_KEY,
-        });
-      }
-      if (widgetIdDesktopRef.current !== null && widgetIdMobileRef.current !== null) {
-        clearInterval(interval);
-      }
-    };
-    interval = setInterval(tryRender, 200);
-    tryRender();
-    return () => clearInterval(interval);
-  }, []);
-
+  // reCAPTCHA v3 (invisible, score-based) - a fresh token is generated
+  // right before each submit via grecaptcha.execute(), scoped to the
+  // "register" action.
   const getRecaptchaToken = () => {
-    return (
-      window.grecaptcha?.getResponse(widgetIdDesktopRef.current) ||
-      window.grecaptcha?.getResponse(widgetIdMobileRef.current) ||
-      null
-    );
-  };
-
-  const resetRecaptcha = () => {
-    if (widgetIdDesktopRef.current !== null) window.grecaptcha?.reset(widgetIdDesktopRef.current);
-    if (widgetIdMobileRef.current !== null) window.grecaptcha?.reset(widgetIdMobileRef.current);
+    return new Promise((resolve, reject) => {
+      if (!window.grecaptcha || !window.grecaptcha.execute) {
+        reject(new Error("reCAPTCHA not loaded yet. Please try again."));
+        return;
+      }
+      window.grecaptcha.ready(() => {
+        window.grecaptcha
+          .execute(RECAPTCHA_SITE_KEY, { action: "register" })
+          .then(resolve)
+          .catch(reject);
+      });
+    });
   };
 
   const isPhoneValid   = /^09\d{9}$/.test(phoneNumber);
@@ -120,7 +86,6 @@ export default function Register() {
 
   const handleClose = () => navigate(background?.pathname || "/");
 
-  // ── Step 1: Send OTP ─────────────────────────────────────
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setError("");
@@ -129,23 +94,28 @@ export default function Register() {
     if (!passwordsMatch) { setError("Passwords do not match"); return; }
     if (!allConsents)    { setError("Please accept all agreements before registering"); return; }
 
-    const recaptchaToken = getRecaptchaToken();
-    if (!recaptchaToken) { setError("Please complete the reCAPTCHA verification."); return; }
-
     setLoading(true);
+
+    let recaptchaToken;
+    try {
+      recaptchaToken = await getRecaptchaToken();
+    } catch (recaptchaErr) {
+      setError("reCAPTCHA verification failed. Please refresh and try again.");
+      setLoading(false);
+      return;
+    }
+
     try {
       await axios.post(`${API}/auth/send-otp`, { email, first_name: firstName, recaptcha_token: recaptchaToken });
       setStep("otp");
       startCooldown();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send OTP. Please try again.");
-      resetRecaptcha();
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Step 2: Verify OTP & Register ───────────────────────
   const handleVerifyAndRegister = async (e) => {
     e.preventDefault();
     setError("");
@@ -177,7 +147,6 @@ export default function Register() {
     }
   };
 
-  // ── Resend OTP ───────────────────────────────────────────
   const startCooldown = () => {
     setResendCooldown(60);
     const timer = setInterval(() => {
@@ -192,8 +161,18 @@ export default function Register() {
     if (resendCooldown > 0) return;
     setResending(true);
     setError("");
+
+    let recaptchaToken;
     try {
-      await axios.post(`${API}/auth/send-otp`, { email, first_name: firstName });
+      recaptchaToken = await getRecaptchaToken();
+    } catch (recaptchaErr) {
+      setError("reCAPTCHA verification failed. Please refresh and try again.");
+      setResending(false);
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/auth/send-otp`, { email, first_name: firstName, recaptcha_token: recaptchaToken });
       startCooldown();
       setOtpCode("");
     } catch (err) {
@@ -205,7 +184,6 @@ export default function Register() {
 
   const inputClass = "w-full bg-[#f8fafc] border border-gray-200 rounded-xl text-sm text-gray-800 outline-none transition-all focus:bg-white focus:border-[#3d6b35] focus:ring-2 focus:ring-[#3d6b35]/10";
 
-  // ── OTP STEP UI ──────────────────────────────────────────
   const otpContent = (
     <div className="px-7 py-6">
       <div className="text-center mb-6">
@@ -227,7 +205,6 @@ export default function Register() {
       )}
 
       <form onSubmit={handleVerifyAndRegister} className="space-y-4">
-        {/* OTP Input */}
         <div>
           <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-2">
             Verification Code
@@ -258,7 +235,6 @@ export default function Register() {
           {otpLoading ? <><Loader size={16} className="animate-spin" /> Verifying...</> : "Verify & Create Account"}
         </button>
 
-        {/* Resend */}
         <div className="text-center">
           <p className="text-[12px] text-gray-500 mb-1">Didn't receive the code?</p>
           <button
@@ -273,7 +249,6 @@ export default function Register() {
           </button>
         </div>
 
-        {/* Back */}
         <button
           type="button"
           onClick={() => { setStep("form"); setOtpCode(""); setError(""); }}
@@ -285,8 +260,7 @@ export default function Register() {
     </div>
   );
 
-  // ── FORM STEP UI ─────────────────────────────────────────
-  const formContent = (recaptchaFieldRef) => (
+  const formContent = (
     <div className="px-7 py-5">
       <div className="text-center mb-4">
         <img src={logo} alt="TierHome" className="mx-auto h-9 w-auto object-contain mb-2" />
@@ -305,7 +279,6 @@ export default function Register() {
       )}
 
       <form onSubmit={handleSendOtp} className="space-y-3">
-        {/* LAST + FIRST NAME */}
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Last Name</label>
@@ -317,7 +290,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* MI + PHONE */}
         <div className="grid grid-cols-[28%_1fr] gap-2">
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">M.I.</label>
@@ -332,7 +304,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* EMAIL */}
         <div>
           <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Email Address</label>
           <div className="relative">
@@ -341,7 +312,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* PASSWORD */}
         <div>
           <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Password</label>
           <div className="relative">
@@ -363,7 +333,6 @@ export default function Register() {
           )}
         </div>
 
-        {/* CONFIRM PASSWORD */}
         <div>
           <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Confirm Password</label>
           <div className="relative">
@@ -386,7 +355,6 @@ export default function Register() {
           )}
         </div>
 
-        {/* ROLE */}
         <div>
           <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1.5">I am registering as...</label>
           <div className="grid grid-cols-2 gap-2">
@@ -412,7 +380,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* CONSENTS */}
         <div className="space-y-2 pt-2">
           <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-wide">Agreements & Consent</p>
           <ConsentCheckbox checked={termsAccepted}       onChange={setTermsAccepted}       label="I agree to the"  linkText="Terms of Service"                      onReadMore={() => { setModalType("terms");       setEulaModalOpen(true); }} />
@@ -421,10 +388,14 @@ export default function Register() {
           <ConsentCheckbox checked={ageConfirmed}        onChange={setAgeConfirmed}        label="I confirm that I am" linkText="at least 18 years of age"           onReadMore={null} />
         </div>
 
-        {/* reCAPTCHA */}
-        <div ref={recaptchaFieldRef} className="flex justify-center" />
+        <p className="text-center text-[10px] text-gray-400 pt-1">
+          This site is protected by reCAPTCHA and the Google{" "}
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline">Privacy Policy</a>{" "}
+          and{" "}
+          <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline">Terms of Service</a>{" "}
+          apply.
+        </p>
 
-        {/* SUBMIT */}
         <button type="submit" disabled={loading || !allConsents}
           className="w-full h-[48px] rounded-xl text-white font-bold text-[14px] transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           style={{
@@ -445,13 +416,12 @@ export default function Register() {
     </div>
   );
 
-  const content = (recaptchaFieldRef) => step === "otp" ? otpContent : formContent(recaptchaFieldRef);
+  const content = step === "otp" ? otpContent : formContent;
 
   return (
     <>
       <EulaModal open={eulaModalOpen} onClose={() => setEulaModalOpen(false)} modalType={modalType} />
 
-      {/* DESKTOP */}
       <div className="hidden sm:flex fixed inset-0 z-50 items-center justify-center px-4"
         style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
         <div className="relative w-full max-w-[480px] bg-white rounded-2xl shadow-2xl"
@@ -465,11 +435,10 @@ export default function Register() {
             </span>
             <div className="w-9" />
           </div>
-          <div className="overflow-y-auto flex-1">{content(recaptchaRefDesktop)}</div>
+          <div className="overflow-y-auto flex-1">{content}</div>
         </div>
       </div>
 
-      {/* MOBILE */}
       <div className="sm:hidden fixed inset-0 z-50 bg-white flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
           <button onClick={handleClose} className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
@@ -480,7 +449,7 @@ export default function Register() {
           </span>
           <div className="w-9" />
         </div>
-        <div className="flex-1 overflow-y-auto">{content(recaptchaRefMobile)}</div>
+        <div className="flex-1 overflow-y-auto">{content}</div>
       </div>
     </>
   );

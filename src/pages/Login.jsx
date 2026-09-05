@@ -1,6 +1,6 @@
 // FILE: src/pages/Login.jsx
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, X, UserX, CheckCircle, Loader } from "lucide-react";
@@ -22,59 +22,25 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ── reCAPTCHA v2 (explicit render — safer for a React modal that
-  // mounts/unmounts, unlike the default auto-render meant for static pages) ──
-  // ── reCAPTCHA v2 (explicit render) — separate widget instances for
-  // desktop and mobile layouts. Both layouts render simultaneously in the
-  // DOM (CSS just hides one via Tailwind's sm: breakpoint), so a single
-  // ref/widget shared between both would only ever attach to one of them.
-  // Using two independent refs ensures whichever layout is actually
-  // visible always has a working, rendered checkbox.
-  const recaptchaRefDesktop = useRef(null);
-  const widgetIdDesktopRef = useRef(null);
-  const recaptchaRefMobile = useRef(null);
-  const widgetIdMobileRef = useRef(null);
-
-  useEffect(() => {
-    let interval;
-    const tryRender = () => {
-      if (!window.grecaptcha || !window.grecaptcha.render) return;
-      if (recaptchaRefDesktop.current && widgetIdDesktopRef.current === null) {
-        widgetIdDesktopRef.current = window.grecaptcha.render(recaptchaRefDesktop.current, {
-          sitekey: RECAPTCHA_SITE_KEY,
-        });
-      }
-      if (recaptchaRefMobile.current && widgetIdMobileRef.current === null) {
-        widgetIdMobileRef.current = window.grecaptcha.render(recaptchaRefMobile.current, {
-          sitekey: RECAPTCHA_SITE_KEY,
-        });
-      }
-      if (widgetIdDesktopRef.current !== null && widgetIdMobileRef.current !== null) {
-        clearInterval(interval);
-      }
-    };
-    interval = setInterval(tryRender, 200);
-    tryRender();
-    return () => clearInterval(interval);
-  }, []);
-
-  // Returns whichever widget's checkbox was actually completed —
-  // only one is ever visible/usable at a time, depending on screen size.
+  // reCAPTCHA v3 (invisible, score-based) - no checkbox widget. A fresh
+  // token is generated right before each submit via grecaptcha.execute(),
+  // scoped to the "login" action so the backend can confirm the token
+  // wasn't reused from a different form/action.
   const getRecaptchaToken = () => {
-    return (
-      window.grecaptcha?.getResponse(widgetIdDesktopRef.current) ||
-      window.grecaptcha?.getResponse(widgetIdMobileRef.current) ||
-      null
-    );
+    return new Promise((resolve, reject) => {
+      if (!window.grecaptcha || !window.grecaptcha.execute) {
+        reject(new Error("reCAPTCHA not loaded yet. Please try again."));
+        return;
+      }
+      window.grecaptcha.ready(() => {
+        window.grecaptcha
+          .execute(RECAPTCHA_SITE_KEY, { action: "login" })
+          .then(resolve)
+          .catch(reject);
+      });
+    });
   };
 
-  const resetRecaptcha = () => {
-    if (widgetIdDesktopRef.current !== null) window.grecaptcha?.reset(widgetIdDesktopRef.current);
-    if (widgetIdMobileRef.current !== null) window.grecaptcha?.reset(widgetIdMobileRef.current);
-  };
-
-  // ✅ Deactivation popup — triggered by a failed login OR by the global
-  // interceptor redirecting a mid-session user here after a 403.
   const [showDeactivated, setShowDeactivated] = useState(false);
   const [reactivating, setReactivating] = useState(false);
   const [reactivationMsg, setReactivationMsg] = useState(null);
@@ -97,9 +63,11 @@ export default function Login() {
     setShowDeactivated(false);
     setReactivationMsg(null);
 
-    const recaptchaToken = getRecaptchaToken();
-    if (!recaptchaToken) {
-      setError("Please complete the reCAPTCHA verification.");
+    let recaptchaToken;
+    try {
+      recaptchaToken = await getRecaptchaToken();
+    } catch (recaptchaErr) {
+      setError("reCAPTCHA verification failed. Please refresh and try again.");
       setLoading(false);
       return;
     }
@@ -133,7 +101,6 @@ export default function Login() {
         const backendMessage = err.response?.data?.message;
         setError(backendMessage || "Invalid email or password");
       }
-      resetRecaptcha();
     } finally {
       setLoading(false);
     }
@@ -153,12 +120,8 @@ export default function Login() {
     }
   };
 
-  // =============================================
-  // SHARED FORM — not a sub-component
-  // =============================================
-  const formContent = (recaptchaFieldRef) => (
+  const formContent = (
     <div className="px-8 py-6">
-      {/* LOGO */}
       <div className="text-center mb-5">
         <img
           src={logo}
@@ -180,7 +143,6 @@ export default function Login() {
         Sign in to your TierHome account
       </p>
 
-      {/* DEACTIVATED ACCOUNT PANEL */}
       {showDeactivated && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
           <div className="flex items-start gap-2.5">
@@ -221,7 +183,6 @@ export default function Login() {
         </div>
       )}
 
-      {/* ERROR */}
       {error && !showDeactivated && (
         <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
           <AlertCircle size={16} className="shrink-0" />
@@ -229,9 +190,7 @@ export default function Login() {
         </div>
       )}
 
-      {/* FORM */}
       <form onSubmit={handleLogin} className="space-y-4">
-        {/* EMAIL */}
         <div>
           <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
             Email
@@ -252,7 +211,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* PASSWORD */}
         <div>
           <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
             Password
@@ -289,10 +247,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* reCAPTCHA */}
-        <div ref={recaptchaFieldRef} className="flex justify-center" />
-
-        {/* SUBMIT */}
         <button
           type="submit"
           disabled={loading}
@@ -309,7 +263,6 @@ export default function Login() {
         </button>
       </form>
 
-      {/* SOCIAL PROOF */}
       <p className="text-center text-[11px] text-gray-400 mt-4">
         Trusted by tenants and landlords in Angeles City
       </p>
@@ -321,7 +274,18 @@ export default function Login() {
         <span>Free to Use</span>
       </div>
 
-      {/* REGISTER LINK */}
+      <p className="text-center text-[10px] text-gray-400 mt-3">
+        This site is protected by reCAPTCHA and the Google{" "}
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline">
+          Privacy Policy
+        </a>{" "}
+        and{" "}
+        <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline">
+          Terms of Service
+        </a>{" "}
+        apply.
+      </p>
+
       <div className="border-t border-gray-100 mt-5 pt-4 text-center text-[13px] text-gray-500">
         New to TierHome?{" "}
         <span
@@ -339,7 +303,6 @@ export default function Login() {
 
   return (
     <>
-      {/* DESKTOP + TABLET — Modal on top of landing page */}
       <div
         className="hidden sm:flex fixed inset-0 z-50 items-center justify-center px-4"
         style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
@@ -347,7 +310,6 @@ export default function Login() {
         <div
           className="relative w-full max-w-[480px] bg-white rounded-2xl shadow-2xl overflow-hidden"
         >
-          {/* HEADER */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <button
               onClick={handleClose}
@@ -360,13 +322,11 @@ export default function Login() {
             </span>
             <div className="w-9" />
           </div>
-          {formContent(recaptchaRefDesktop)}
+          {formContent}
         </div>
       </div>
 
-      {/* MOBILE — Full screen */}
       <div className="sm:hidden fixed inset-0 z-50 bg-white flex flex-col">
-        {/* HEADER */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 shrink-0">
           <button
             onClick={handleClose}
@@ -377,7 +337,7 @@ export default function Login() {
           <span className="text-[15px] font-bold text-gray-800">Log in</span>
           <div className="w-9" />
         </div>
-        <div className="flex-1 overflow-y-auto">{formContent(recaptchaRefMobile)}</div>
+        <div className="flex-1 overflow-y-auto">{formContent}</div>
       </div>
     </>
   );

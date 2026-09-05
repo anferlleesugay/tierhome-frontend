@@ -290,18 +290,19 @@ export default function Register() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">
-            Middle Name <span className="text-gray-400 font-normal normal-case">(optional)</span>
-          </label>
-          <input placeholder="Santos" value={middleInitial} onChange={(e) => setMiddleInitial(e.target.value)} className={`${inputClass} h-[44px] px-3`} />
-        </div>
-
-        <div>
-          <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Phone Number</label>
-          <div className="relative">
-            <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input required inputMode="numeric" placeholder="09XXXXXXXXX" maxLength={11} value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))} className={`${inputClass} h-[44px] pl-8 pr-3`} />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">
+              Middle Name <span className="text-gray-400 font-normal normal-case">(optional)</span>
+            </label>
+            <input placeholder="Santos" value={middleInitial} onChange={(e) => setMiddleInitial(e.target.value)} className={`${inputClass} h-[44px] px-3`} />
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-1">Phone Number</label>
+            <div className="relative">
+              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input required inputMode="numeric" placeholder="09XXXXXXXXX" maxLength={11} value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))} className={`${inputClass} h-[44px] pl-8 pr-3`} />
+            </div>
           </div>
         </div>
 
@@ -423,11 +424,10 @@ export default function Register() {
     <>
       <EulaModal open={eulaModalOpen} onClose={() => setEulaModalOpen(false)} modalType={modalType} />
 
-      <div className="hidden sm:flex fixed inset-0 z-50 items-center justify-center px-4"
+      <div className="hidden sm:flex fixed inset-0 z-50 items-start justify-center px-4 py-8 overflow-y-auto"
         style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
-        <div className="relative w-full max-w-[480px] bg-white rounded-2xl shadow-2xl"
-          style={{ height: "620px", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+        <div className="relative w-full max-w-[480px] bg-white rounded-2xl shadow-2xl my-auto">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <button onClick={handleClose} className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
               <X size={18} className="text-gray-700" />
             </button>
@@ -436,7 +436,7 @@ export default function Register() {
             </span>
             <div className="w-9" />
           </div>
-          <div className="overflow-y-auto flex-1">{content}</div>
+          {content}
         </div>
       </div>
 

@@ -126,8 +126,7 @@ export default function LandlordProfile() {
     } finally { setDeleting(false); }
   };
 
-  // Cancelling a pending request works the same regardless of its type —
-  // the endpoint just checks it belongs to the current user and is pending.
+  // Cancelling a pending request works the same regardless of its type.
   const handleCancelDeactivation = async () => {
     if (!deactivationRequest?.id) return;
     setDeactivating(true);
@@ -296,7 +295,7 @@ export default function LandlordProfile() {
             </div>
 
             <h1 className="text-2xl font-bold text-gray-900">
-              {profile?.first_name} {profile?.middle_initial ? profile.middle_initial + ". " : ""}{profile?.last_name}
+              {profile?.first_name} {profile?.middle_name ? profile.middle_name + " " : ""}{profile?.last_name}
             </h1>
             <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
               <Building size={14} /> {listings.length} active listing{listings.length !== 1 ? "s" : ""}
@@ -464,9 +463,8 @@ export default function LandlordProfile() {
             )}
 
             {/* Account deletion — separate, stronger action from
-                deactivation: this permanently anonymizes personal data and
-                purges biometric verification data, not just a reversible
-                pause. */}
+                deactivation: permanently anonymizes personal data and
+                purges biometric verification data. */}
             {role !== "admin" && (
               <div className="bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden">
                 <div className="px-5 py-4">
@@ -481,15 +479,15 @@ export default function LandlordProfile() {
                   </div>
 
                   {deactivationRequest?.status === "pending" && deactivationRequest.type === "delete" ? (
-                    <div className="mt-3 bg-red-50 border border-red-200 rounded-xl p-3.5">
-                      <div className="flex items-center gap-2 mb-2">
+                    <div className="mt-3 bg-red-50 border border-red-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
                         <Clock size={14} className="text-red-600 shrink-0" />
                         <p className="text-xs text-red-700 font-medium">Your account deletion request is pending admin review.</p>
                       </div>
                       <button
                         onClick={handleCancelDeactivation}
                         disabled={deactivating}
-                        className="text-xs font-bold text-red-700 hover:underline disabled:opacity-50"
+                        className="text-xs font-bold text-red-700 hover:underline shrink-0 disabled:opacity-50"
                       >
                         {deactivating ? "..." : "Cancel Request"}
                       </button>

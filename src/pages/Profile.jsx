@@ -264,7 +264,7 @@ export default function Profile() {
                 </div>
               </div>
               <h1 className="text-xl font-bold text-gray-900">
-                {profile?.first_name} {profile?.middle_initial ? profile.middle_initial + ". " : ""}{profile?.last_name}
+                {profile?.first_name} {profile?.middle_name ? profile.middle_name + " " : ""}{profile?.last_name}
               </h1>
               <p className="text-sm text-gray-500">{profile?.email}</p>
               {profile?.phone_number && (

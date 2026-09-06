@@ -138,7 +138,7 @@ export default function Register() {
       const res = await axios.post(`${API}/auth/register`, {
         last_name:      lastName,
         first_name:     firstName,
-        middle_initial: middleInitial,
+        middle_name: middleInitial,
         phone_number:   phoneNumber,
         email,
         password,

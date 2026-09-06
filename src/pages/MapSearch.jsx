@@ -31,6 +31,15 @@ const USER_MARKER_SVG = `
 
 const svgToUrl = (svg) => `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 
+// Angeles City, Pampanga — actual city-center coordinates (verified against
+// multiple geocoding sources). The previous constant (15.3202, 120.6205) was
+// ~19km too far north and actually sat near the Tarlac provincial border,
+// which is why the map was defaulting there instead of Angeles City.
+const ANGELES_CITY_CENTER = { lat: 15.1449, lng: 120.5887 };
+// Soft bias radius (meters) for autocomplete so ambiguous address/barangay
+// names resolve near Angeles City instead of nationally (Metro Manila).
+const LOCATION_BIAS_RADIUS_M = 15000;
+
 export default function MapSearch() {
   const { isLoggedIn } = useAuth();
   const navigate  = useNavigate();
@@ -47,7 +56,7 @@ export default function MapSearch() {
   const [searchRadius,     setSearchRadius]     = useState(3);
   const searchRadiusRef = useRef(searchRadius);
   useEffect(() => { searchRadiusRef.current = searchRadius; }, [searchRadius]);
-  const [userLocation,     setUserLocation]     = useState({ lat: 15.3202, lng: 120.6205 });
+  const [userLocation,     setUserLocation]     = useState(ANGELES_CITY_CENTER);
   const [searchInput,      setSearchInput]      = useState("");
   const [suggestions,      setSuggestions]      = useState([]);
   const [showSuggestions,  setShowSuggestions]  = useState(false);
@@ -205,7 +214,14 @@ export default function MapSearch() {
     setSearchInput(val);
     if (!val.trim() || !autoSvc.current) { setSuggestions([]); setShowSuggestions(false); return; }
     autoSvc.current.getPlacePredictions(
-      { input: val, componentRestrictions: { country: "ph" } },
+      {
+        input: val,
+        componentRestrictions: { country: "ph" },
+        // Soft bias toward Angeles City so ambiguous barangay/street names
+        // don't resolve to a same-named place elsewhere in the country.
+        location: new window.google.maps.LatLng(ANGELES_CITY_CENTER.lat, ANGELES_CITY_CENTER.lng),
+        radius: LOCATION_BIAS_RADIUS_M,
+      },
       (predictions, status) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
           setSuggestions(predictions); setShowSuggestions(true);

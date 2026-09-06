@@ -59,6 +59,20 @@ export default function Navbar() {
 
   const dropdownRef = useRef(null);
 
+  // Keep the search bar's displayed labels in sync with the actual URL —
+  // without this, a refresh, direct link, or browser back/forward leaves
+  // ListingGrid showing correctly-filtered results (it reads location.search
+  // directly) while the search bar itself silently resets to "All
+  // Barangays" / "All Types", out of sync with what's actually being shown.
+  // Selecting a new filter after that mismatch would then drop the
+  // still-active-but-no-longer-displayed filter entirely.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setBarangay(params.get("barangay") || "All Barangays");
+    setBudget(params.get("budget") || "");
+    setPropertyType(params.get("type") || "All Types");
+  }, [location.search]);
+
   // ✅ Scroll listener with hysteresis (dead zone) + rAF throttling to stop flickering.
   // Enters "scrolled" state past 100px, only exits back past 60px — the 40px gap
   // between thresholds prevents rapid toggling when scroll position hovers near the edge.

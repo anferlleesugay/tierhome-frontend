@@ -787,7 +787,7 @@ export default function LandlordListings() {
                           onError={(e) => { e.target.style.display = "none"; }} />
                         {!img.existing && (
                           <button type="button" onClick={() => removeImage(i)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition">
                             <X size={11} />
                           </button>
                         )}

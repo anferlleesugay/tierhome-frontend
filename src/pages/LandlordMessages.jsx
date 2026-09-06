@@ -436,9 +436,9 @@ export default function LandlordMessages() {
                         </div>
                       )}
                       <div className="flex items-center gap-1.5">
-                        {isMine && hoveredMsg === msg.id && (
+                        {isMine && (
                           <button onClick={() => { setReplyTo(msg); textareaRef.current?.focus(); }}
-                            className="p-1.5 text-gray-400 hover:text-[#3d6b35] hover:bg-white rounded-full transition">
+                            className={`p-1.5 text-gray-400 hover:text-[#3d6b35] hover:bg-white rounded-full transition-opacity opacity-100 md:opacity-0 ${hoveredMsg === msg.id ? "md:opacity-100" : ""}`}>
                             <Reply size={13} />
                           </button>
                         )}
@@ -460,9 +460,9 @@ export default function LandlordMessages() {
                           })()}
                           <div className="px-4 py-2.5">{msg.message}</div>
                         </div>
-                        {!isMine && hoveredMsg === msg.id && (
+                        {!isMine && (
                           <button onClick={() => { setReplyTo(msg); textareaRef.current?.focus(); }}
-                            className="p-1.5 text-gray-400 hover:text-[#3d6b35] hover:bg-white rounded-full transition">
+                            className={`p-1.5 text-gray-400 hover:text-[#3d6b35] hover:bg-white rounded-full transition-opacity opacity-100 md:opacity-0 ${hoveredMsg === msg.id ? "md:opacity-100" : ""}`}>
                             <Reply size={13} />
                           </button>
                         )}

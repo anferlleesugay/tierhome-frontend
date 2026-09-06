@@ -246,7 +246,7 @@ export default function Messages() {
                   </p>
                 </div>
                 <button onClick={(e) => handleDelete(conv.id, e)}
-                  className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg shrink-0">
+                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg shrink-0">
                   <Trash2 size={13} />
                 </button>
               </div>
@@ -350,9 +350,9 @@ export default function Messages() {
                       )}
 
                       <div className="flex items-center gap-1.5">
-                        {isMine && hoveredMsg === msg.id && (
+                        {isMine && (
                           <button onClick={() => { setReplyTo(msg); textareaRef.current?.focus(); }}
-                            className="p-1.5 text-gray-400 hover:text-[#3d6b35] hover:bg-white rounded-full transition">
+                            className={`p-1.5 text-gray-400 hover:text-[#3d6b35] hover:bg-white rounded-full transition-opacity opacity-100 md:opacity-0 ${hoveredMsg === msg.id ? "md:opacity-100" : ""}`}>
                             <Reply size={13} />
                           </button>
                         )}
@@ -385,9 +385,9 @@ export default function Messages() {
                           <div className="px-4 py-2.5">{msg.message}</div>
                         </div>
 
-                        {!isMine && hoveredMsg === msg.id && (
+                        {!isMine && (
                           <button onClick={() => { setReplyTo(msg); textareaRef.current?.focus(); }}
-                            className="p-1.5 text-gray-400 hover:text-[#3d6b35] hover:bg-white rounded-full transition">
+                            className={`p-1.5 text-gray-400 hover:text-[#3d6b35] hover:bg-white rounded-full transition-opacity opacity-100 md:opacity-0 ${hoveredMsg === msg.id ? "md:opacity-100" : ""}`}>
                             <Reply size={13} />
                           </button>
                         )}

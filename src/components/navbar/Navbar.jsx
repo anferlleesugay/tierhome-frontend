@@ -68,8 +68,9 @@ export default function Navbar() {
   // still-active-but-no-longer-displayed filter entirely.
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+    const urlBudget = params.get("budget");
     setBarangay(params.get("barangay") || "All Barangays");
-    setBudget(params.get("budget") || "");
+    setBudget(urlBudget ? Number(urlBudget).toLocaleString() : "");
     setPropertyType(params.get("type") || "All Types");
   }, [location.search]);
 
@@ -109,20 +110,49 @@ export default function Navbar() {
     const bd = overrides.budget ?? budget;
     const pt = overrides.propertyType ?? propertyType;
 
+    // Preserve sort (managed on the Browse page itself, via ListingGrid)
+    // so picking a new barangay/type/budget here doesn't silently reset it.
+    const currentSort = new URLSearchParams(location.search).get("sort");
+
     const params = new URLSearchParams();
     if (b !== "All Barangays") params.append("barangay", b);
     if (bd) params.append("budget", bd.replace(/,/g, ""));
     if (pt !== "All Types") params.append("type", pt);
+    if (currentSort) params.append("sort", currentSort);
     navigate(`/browse?${params.toString()}`);
   };
 
-  // Barangay selection should filter immediately (no separate Search click
-  // needed) — Budget/Type still wait for Search since those need a value
-  // typed/confirmed first, but a barangay click is a complete choice on its own.
+  // Full "smart filter" behavior: every field auto-applies without a
+  // separate Search click. Barangay and Property Type are discrete,
+  // complete choices — they filter the instant they're picked. Budget is a
+  // typed value, so it debounces (waits ~600ms after the user stops typing)
+  // instead of firing a search on every keystroke.
   const handleBarangaySelect = (b) => {
     setBarangay(b);
     handleSearch({ barangay: b });
   };
+
+  const handlePropertyTypeSelect = (pt) => {
+    setPropertyType(pt);
+    handleSearch({ propertyType: pt });
+  };
+
+  useEffect(() => {
+    // Skip if this matches what's already in the URL — avoids re-navigating
+    // to the same place right after the sync-from-URL effect just set this,
+    // or right after handleSearch() itself just navigated here.
+    const params = new URLSearchParams(location.search);
+    const urlBudget = params.get("budget") || "";
+    const rawBudget = budget.replace(/,/g, "");
+    if (rawBudget === urlBudget) return;
+
+    const timeout = setTimeout(() => {
+      handleSearch({ budget });
+    }, 600);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [budget]);
 
   const compactText = [
     barangay !== "All Barangays" ? barangay : "Anywhere",
@@ -163,6 +193,7 @@ export default function Navbar() {
               onBarangaySelect={handleBarangaySelect}
               budget={budget} setBudget={setBudget}
               propertyType={propertyType} setPropertyType={setPropertyType}
+              onPropertyTypeSelect={handlePropertyTypeSelect}
               onSearch={handleSearch} />
           ) : (
             <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}

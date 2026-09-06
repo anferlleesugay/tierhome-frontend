@@ -12,6 +12,7 @@ export default function SearchBar({
   setBudget,
   propertyType,
   setPropertyType,
+  onPropertyTypeSelect,
   onSearch,
 }) {
   const [active, setActive] = useState(null);
@@ -93,7 +94,7 @@ export default function SearchBar({
         {active === "type" && (
           <PropertyTypeDropdown
             selected={propertyType}
-            setSelected={setPropertyType}
+            setSelected={onPropertyTypeSelect || setPropertyType}
             close={() => setActive(null)}
           />
         )}

@@ -38,6 +38,17 @@ const AMENITIES = [
 
 const PROPERTY_TYPES = ["House", "Apartment", "Condo", "Studio", "Dormitory", "Boarding House", "Bedspace"];
 
+// Angeles City, Pampanga — actual city-center coordinates (verified against
+// multiple geocoding sources). The previous constant (15.3202, 120.6205) was
+// ~19km too far north and actually sat near the Tarlac provincial border,
+// which is why the map was defaulting there instead of Angeles City.
+const ANGELES_CITY_CENTER = { lat: 15.1449, lng: 120.5887 };
+// Soft bias radius (meters) for autocomplete/geocoding so ambiguous address
+// or barangay names resolve near Angeles City instead of nationally —
+// without this, Google ranks matches by national prominence, which is how
+// searches were landing in Metro Manila.
+const LOCATION_BIAS_RADIUS_M = 15000;
+
 const AMENITY_ICON_MAP = {
   wifi: Wifi, car: Car, utensils: UtensilsCrossed, utensils2: UtensilsCrossed,
   wind: Wind, tv: Tv, shirt: Shirt, droplets: Droplets, dumbbell: Dumbbell,
@@ -92,11 +103,11 @@ function MapLocationPicker({ onLocationSelect, initialLat, initialLng }) {
     if (initializedRef.current || !mapRef.current || !window.google) return;
     initializedRef.current = true;
 
-    // Angeles City, Pampanga — matches the coordinates used as the default
+    // Angeles City, Pampanga — matches ANGELES_CITY_CENTER used as the default
     // in MapSearch.jsx, so every map in the app opens on the correct city
     // by default instead of Metro Manila's generic coordinates.
-    const defaultLat = parseFloat(initialLat) || 15.3202;
-    const defaultLng = parseFloat(initialLng) || 120.6205;
+    const defaultLat = parseFloat(initialLat) || ANGELES_CITY_CENTER.lat;
+    const defaultLng = parseFloat(initialLng) || ANGELES_CITY_CENTER.lng;
 
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 15,
@@ -166,7 +177,14 @@ function MapLocationPicker({ onLocationSelect, initialLat, initialLng }) {
       setSuggestions([]); setShowSuggestions(false); return;
     }
     autocompleteServiceRef.current.getPlacePredictions(
-      { input: value, componentRestrictions: { country: "ph" } },
+      {
+        input: value,
+        componentRestrictions: { country: "ph" },
+        // Soft bias toward Angeles City so ambiguous barangay/street names
+        // don't resolve to a same-named place elsewhere in the country.
+        location: new window.google.maps.LatLng(ANGELES_CITY_CENTER.lat, ANGELES_CITY_CENTER.lng),
+        radius: LOCATION_BIAS_RADIUS_M,
+      },
       (predictions, status) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
           setSuggestions(predictions); setShowSuggestions(true);
@@ -207,7 +225,15 @@ function MapLocationPicker({ onLocationSelect, initialLat, initialLng }) {
     setShowSuggestions(false);
 
     const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ address: searchInput }, (results, status) => {
+    const angelesBias = new window.google.maps.LatLng(ANGELES_CITY_CENTER.lat, ANGELES_CITY_CENTER.lng);
+    const biasBounds = new window.google.maps.LatLngBounds(angelesBias, angelesBias).extend(
+      new window.google.maps.LatLng(ANGELES_CITY_CENTER.lat + 0.15, ANGELES_CITY_CENTER.lng + 0.15)
+    ).extend(
+      new window.google.maps.LatLng(ANGELES_CITY_CENTER.lat - 0.15, ANGELES_CITY_CENTER.lng - 0.15)
+    );
+    // bounds = soft viewport bias (Google can still return matches outside it,
+    // but ranks nearby ones higher) — same fix as the autocomplete call above.
+    geocoder.geocode({ address: searchInput, bounds: biasBounds, region: "ph" }, (results, status) => {
       setPinLoading(false);
       if (status === "OK" && results[0]) {
         const location = results[0].geometry.location;

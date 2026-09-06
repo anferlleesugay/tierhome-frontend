@@ -6,7 +6,7 @@ import axios from "axios";
 import {
   MapPin, BadgeCheck, Building, ArrowLeft, Loader, Camera,
   Mail, Lock, Phone, Eye, EyeOff, CheckCircle, AlertCircle,
-  X, Edit2, UserX, Clock,
+  X, Edit2, UserX, Clock, Trash2,
 } from "lucide-react";
 import ListingCard from "../components/listings/ListingCard";
 import { useAuth } from "../context/AuthContext";
@@ -55,6 +55,13 @@ export default function LandlordProfile() {
   const [deactivating,        setDeactivating]         = useState(false);
   const [deactivateError,     setDeactivateError]      = useState("");
 
+  // Account deletion (separate action, same admin-review queue —
+  // distinguished by "type" on the same underlying request record)
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteReason,    setDeleteReason]    = useState("");
+  const [deleting,        setDeleting]        = useState(false);
+  const [deleteError,     setDeleteError]     = useState("");
+
   useEffect(() => {
     axios.get(`${API}/profile/${id}`)
       .then((res) => setProfile(res.data.data))
@@ -92,7 +99,7 @@ export default function LandlordProfile() {
     setDeactivateError("");
     try {
       await axios.post(`${API}/account/deactivate`,
-        { reason: deactivateReason || null },
+        { reason: deactivateReason || null, type: "deactivate" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setShowDeactivateModal(false);
@@ -103,6 +110,24 @@ export default function LandlordProfile() {
     } finally { setDeactivating(false); }
   };
 
+  const handleSubmitDeletion = async () => {
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await axios.post(`${API}/account/deactivate`,
+        { reason: deleteReason || null, type: "delete" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShowDeleteModal(false);
+      setDeleteReason("");
+      fetchDeactivationStatus();
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || "Failed to submit request.");
+    } finally { setDeleting(false); }
+  };
+
+  // Cancelling a pending request works the same regardless of its type —
+  // the endpoint just checks it belongs to the current user and is pending.
   const handleCancelDeactivation = async () => {
     if (!deactivationRequest?.id) return;
     setDeactivating(true);
@@ -396,7 +421,7 @@ export default function LandlordProfile() {
                     </div>
                   </div>
 
-                  {deactivationRequest?.status === "pending" ? (
+                  {deactivationRequest?.status === "pending" && deactivationRequest.type === "deactivate" ? (
                     <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <Clock size={14} className="text-amber-600 shrink-0" />
@@ -410,7 +435,7 @@ export default function LandlordProfile() {
                         {deactivating ? "..." : "Cancel Request"}
                       </button>
                     </div>
-                  ) : deactivationRequest?.status === "rejected" ? (
+                  ) : deactivationRequest?.status === "rejected" && deactivationRequest.type === "deactivate" ? (
                     <div className="mt-3 space-y-2">
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5">
                         <p className="text-xs text-gray-600">
@@ -424,12 +449,73 @@ export default function LandlordProfile() {
                         Submit a new request
                       </button>
                     </div>
+                  ) : deactivationRequest?.status === "pending" && deactivationRequest.type === "delete" ? (
+                    <p className="mt-3 text-xs text-gray-400">Unavailable while your account deletion request is pending.</p>
                   ) : (
                     <button
                       onClick={() => setShowDeactivateModal(true)}
                       className="mt-3 text-xs font-bold px-4 py-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition"
                     >
                       Request Deactivation
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Account deletion — separate, stronger action from
+                deactivation: this permanently anonymizes personal data and
+                purges biometric verification data, not just a reversible
+                pause. */}
+            {role !== "admin" && (
+              <div className="bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden">
+                <div className="px-5 py-4">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                      <Trash2 size={16} className="text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">Delete My Account</p>
+                      <p className="text-xs text-gray-400">Permanent — cannot be undone once approved</p>
+                    </div>
+                  </div>
+
+                  {deactivationRequest?.status === "pending" && deactivationRequest.type === "delete" ? (
+                    <div className="mt-3 bg-red-50 border border-red-200 rounded-xl p-3.5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock size={14} className="text-red-600 shrink-0" />
+                        <p className="text-xs text-red-700 font-medium">Your account deletion request is pending admin review.</p>
+                      </div>
+                      <button
+                        onClick={handleCancelDeactivation}
+                        disabled={deactivating}
+                        className="text-xs font-bold text-red-700 hover:underline disabled:opacity-50"
+                      >
+                        {deactivating ? "..." : "Cancel Request"}
+                      </button>
+                    </div>
+                  ) : deactivationRequest?.status === "rejected" && deactivationRequest.type === "delete" ? (
+                    <div className="mt-3 space-y-2">
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5">
+                        <p className="text-xs text-gray-600">
+                          Your previous request was declined{deactivationRequest.admin_note ? `: "${deactivationRequest.admin_note}"` : "."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="text-xs font-bold text-red-600 hover:underline"
+                      >
+                        Submit a new request
+                      </button>
+                    </div>
+                  ) : deactivationRequest?.status === "pending" && deactivationRequest.type === "deactivate" ? (
+                    <p className="mt-3 text-xs text-gray-400">Unavailable while your deactivation request is pending.</p>
+                  ) : (
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      className="mt-3 text-xs font-bold px-4 py-2 border border-red-300 text-red-600 rounded-xl hover:bg-red-50 transition"
+                    >
+                      Request Account Deletion
                     </button>
                   )}
                 </div>
@@ -498,6 +584,60 @@ export default function LandlordProfile() {
                 <button onClick={handleSubmitDeactivation} disabled={deactivating}
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50">
                   {deactivating ? <Loader size={14} className="animate-spin" /> : "Submit Request"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete account confirmation modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
+          onClick={() => { if (!deleting) setShowDeleteModal(false); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="font-bold text-gray-900 text-lg">Delete My Account</h2>
+              <button onClick={() => setShowDeleteModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
+                <X size={18} className="text-gray-600" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5">
+              <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3.5 py-3 mb-4">
+                <AlertCircle size={15} className="text-red-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-red-700 leading-relaxed">
+                  This permanently erases your name, email, phone number, profile photo, and the ID/selfie
+                  used for identity verification — including removing your face from our verification
+                  system. This cannot be undone. An administrator will review your request before it takes effect.
+                </p>
+              </div>
+
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
+                Reason <span className="text-gray-400 font-normal normal-case">(optional)</span>
+              </label>
+              <textarea value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder="Let us know why you're leaving..."
+                rows={3}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition resize-none mb-4" />
+
+              {deleteError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-2.5 rounded-xl mb-4">
+                  <AlertCircle size={13} className="shrink-0" /> {deleteError}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                  Cancel
+                </button>
+                <button onClick={handleSubmitDeletion} disabled={deleting}
+                  className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                  {deleting ? <Loader size={14} className="animate-spin" /> : "Submit Deletion Request"}
                 </button>
               </div>
             </div>

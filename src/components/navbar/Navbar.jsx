@@ -90,12 +90,24 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const handleSearch = () => {
+  const handleSearch = (overrides = {}) => {
+    const b  = overrides.barangay ?? barangay;
+    const bd = overrides.budget ?? budget;
+    const pt = overrides.propertyType ?? propertyType;
+
     const params = new URLSearchParams();
-    if (barangay !== "All Barangays") params.append("barangay", barangay);
-    if (budget) params.append("budget", budget.replace(/,/g, ""));
-    if (propertyType !== "All Types") params.append("type", propertyType);
+    if (b !== "All Barangays") params.append("barangay", b);
+    if (bd) params.append("budget", bd.replace(/,/g, ""));
+    if (pt !== "All Types") params.append("type", pt);
     navigate(`/browse?${params.toString()}`);
+  };
+
+  // Barangay selection should filter immediately (no separate Search click
+  // needed) — Budget/Type still wait for Search since those need a value
+  // typed/confirmed first, but a barangay click is a complete choice on its own.
+  const handleBarangaySelect = (b) => {
+    setBarangay(b);
+    handleSearch({ barangay: b });
   };
 
   const compactText = [
@@ -134,6 +146,7 @@ export default function Navbar() {
             <div />
           ) : !scrolled ? (
             <SearchBar barangay={barangay} setBarangay={setBarangay}
+              onBarangaySelect={handleBarangaySelect}
               budget={budget} setBudget={setBudget}
               propertyType={propertyType} setPropertyType={setPropertyType}
               onSearch={handleSearch} />

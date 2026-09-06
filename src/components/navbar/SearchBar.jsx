@@ -7,6 +7,7 @@ import PropertyTypeDropdown from "./PropertyTypeDropdown";
 export default function SearchBar({
   barangay,
   setBarangay,
+  onBarangaySelect,
   budget,
   setBudget,
   propertyType,
@@ -47,7 +48,7 @@ export default function SearchBar({
         {active === "location" && (
           <BarangayDropdown
             selected={barangay}
-            setSelected={setBarangay}
+            setSelected={onBarangaySelect || setBarangay}
             close={() => setActive(null)}
           />
         )}

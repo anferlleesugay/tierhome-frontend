@@ -92,7 +92,45 @@ function ScoreBar({ score }) {
   );
 }
 
+// Images now live behind an authenticated admin-only route (see 15c fix),
+// so a plain <img src="..."> or <a href="..."> can't load/open them —
+// neither can attach an Authorization header. This hook fetches the bytes
+// via axios (which can) and exposes a blob object URL that works for both
+// rendering the <img> and opening it full-size in a new tab.
+function useSecureImage(url, token) {
+  const [blobUrl, setBlobUrl] = useState(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let objectUrl = null;
+    let cancelled = false;
+    setFailed(false);
+    setBlobUrl(null);
+
+    if (!url || !token) return;
+
+    axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: "blob",
+    }).then((res) => {
+      if (cancelled) return;
+      objectUrl = URL.createObjectURL(res.data);
+      setBlobUrl(objectUrl);
+    }).catch(() => {
+      if (!cancelled) setFailed(true);
+    });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [url, token]);
+
+  return { blobUrl, failed };
+}
+
 function VerificationCard({ item, onApprove, onReject, processing }) {
+  const { token } = useAuth();
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [reason, setReason] = useState("");
 
@@ -107,8 +145,12 @@ function VerificationCard({ item, onApprove, onReject, processing }) {
     });
   };
 
-  const idUrl = item.id_photo_path ? `${STORAGE}${item.id_photo_path}` : null;
-  const selfieUrl = item.selfie_path ? `${STORAGE}${item.selfie_path}` : null;
+  // Authenticated image endpoints (replace the old direct public-storage
+  // URLs) — see VerificationController::image() on the backend.
+  const idUrl = item.id_photo_path ? `${API}/admin/verify/${item.id}/image/id` : null;
+  const selfieUrl = item.selfie_path ? `${API}/admin/verify/${item.id}/image/selfie` : null;
+  const idImage = useSecureImage(idUrl, token);
+  const selfieImage = useSecureImage(selfieUrl, token);
 
   return (
     <div className="bg-white rounded-2xl p-5"
@@ -139,19 +181,20 @@ function VerificationCard({ item, onApprove, onReject, processing }) {
           <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
             Valid ID
           </p>
-          {idUrl ? (
+          {idImage.blobUrl ? (
             <div className="relative group">
-              <img src={idUrl} alt="Valid ID"
+              <img src={idImage.blobUrl} alt="Valid ID"
                 className="w-full h-[140px] object-cover rounded-xl border border-gray-100"
-                onError={(e) => { e.target.style.display = "none"; }}
               />
-              <a href={idUrl} target="_blank" rel="noreferrer"
+              <a href={idImage.blobUrl} target="_blank" rel="noreferrer"
                 className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
                 <div className="bg-white rounded-full p-2">
                   <Eye size={16} className="text-gray-700" />
                 </div>
               </a>
             </div>
+          ) : idUrl && !idImage.failed ? (
+            <div className="w-full h-[140px] rounded-xl bg-gray-100 animate-pulse" />
           ) : (
             <div className="w-full h-[140px] rounded-xl bg-gray-100 flex items-center justify-center">
               <User size={24} className="text-gray-300" />
@@ -163,19 +206,20 @@ function VerificationCard({ item, onApprove, onReject, processing }) {
           <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
             Selfie Photo
           </p>
-          {selfieUrl ? (
+          {selfieImage.blobUrl ? (
             <div className="relative group">
-              <img src={selfieUrl} alt="Selfie"
+              <img src={selfieImage.blobUrl} alt="Selfie"
                 className="w-full h-[140px] object-cover rounded-xl border border-gray-100"
-                onError={(e) => { e.target.style.display = "none"; }}
               />
-              <a href={selfieUrl} target="_blank" rel="noreferrer"
+              <a href={selfieImage.blobUrl} target="_blank" rel="noreferrer"
                 className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
                 <div className="bg-white rounded-full p-2">
                   <Eye size={16} className="text-gray-700" />
                 </div>
               </a>
             </div>
+          ) : selfieUrl && !selfieImage.failed ? (
+            <div className="w-full h-[140px] rounded-xl bg-gray-100 animate-pulse" />
           ) : (
             <div className="w-full h-[140px] rounded-xl bg-gray-100 flex items-center justify-center">
               <User size={24} className="text-gray-300" />

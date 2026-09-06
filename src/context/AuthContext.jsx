@@ -3,6 +3,30 @@ import axios from "axios";
 
 const API = import.meta.env.VITE_API_URL;
 
+// ================= SILENT TOKEN REFRESH (15g) =================
+// Module-level (not component-level) so every 401 across the whole app
+// shares ONE in-flight refresh call instead of firing a separate refresh
+// per failed request if several requests 401 around the same moment.
+let refreshPromise = null;
+
+async function performRefresh() {
+  const currentToken = localStorage.getItem("token");
+  if (!currentToken) throw new Error("No token to refresh");
+
+  const res = await axios.post(`${API}/auth/refresh`, {}, {
+    headers: { Authorization: `Bearer ${currentToken}` },
+  });
+
+  const newToken = res.data?.data?.token;
+  const newUser = res.data?.data?.user;
+  if (!newToken) throw new Error("Refresh did not return a token");
+
+  localStorage.setItem("token", newToken);
+  if (newUser) localStorage.setItem("user", JSON.stringify(newUser));
+
+  return newToken;
+}
+
 // ================= CREATE CONTEXT =================
 const AuthContext = createContext({});
 
@@ -59,14 +83,18 @@ export function AuthProvider({ children }) {
     setSavedIds([]);
   }
 
-  // ================= GLOBAL DEACTIVATION DETECTION =================
+  // ================= GLOBAL DEACTIVATION DETECTION + SILENT REFRESH =================
   // Catches the `deactivated: true` flag from ANY API response (not just login) —
   // this is what makes deactivation take effect immediately, without requiring
   // the user to manually log out and log back in.
+  //
+  // Also (15g): on a genuine expired-token 401, try one silent refresh via
+  // /auth/refresh and retry the original request — this is what lets us run
+  // a short-lived JWT_TTL without forcing real users to re-login constantly.
   useEffect(() => {
     const interceptorId = axios.interceptors.response.use(
       (response) => response,
-      (error) => {
+      async (error) => {
         if (error.response?.status === 403 && error.response?.data?.deactivated) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
@@ -77,7 +105,49 @@ export function AuthProvider({ children }) {
           if (!window.location.pathname.startsWith("/login")) {
             window.location.href = "/login?deactivated=1";
           }
+          return Promise.reject(error);
         }
+
+        const original = error.config;
+        const isAuthEndpoint = original?.url?.includes("/auth/login")
+          || original?.url?.includes("/auth/register")
+          || original?.url?.includes("/auth/refresh");
+
+        if (
+          error.response?.status === 401 &&
+          original && !original._retried &&
+          !isAuthEndpoint &&
+          localStorage.getItem("token")
+        ) {
+          original._retried = true;
+
+          try {
+            if (!refreshPromise) {
+              refreshPromise = performRefresh().finally(() => { refreshPromise = null; });
+            }
+            const newToken = await refreshPromise;
+
+            setToken(newToken);
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) setUser(JSON.parse(storedUser));
+
+            original.headers = original.headers || {};
+            original.headers.Authorization = `Bearer ${newToken}`;
+            return axios(original);
+          } catch (refreshError) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            setToken(null);
+            setUser(null);
+            setSavedIds([]);
+
+            if (!window.location.pathname.startsWith("/login")) {
+              window.location.href = "/login?expired=1";
+            }
+            return Promise.reject(error);
+          }
+        }
+
         return Promise.reject(error);
       }
     );

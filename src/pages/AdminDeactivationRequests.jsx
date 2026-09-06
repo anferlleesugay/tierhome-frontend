@@ -99,15 +99,23 @@ export default function AdminDeactivationRequests() {
   const requestedAccounts = deactivated.filter((u) => u.reactivation_requested_at);
   const otherAccounts     = deactivated.filter((u) => !u.reactivation_requested_at);
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id, type) => {
     if (actingId) return;
+
+    if (type === "delete") {
+      const confirmed = window.confirm(
+        "This will PERMANENTLY anonymize this user's personal data and delete their biometric ID verification data (including removing their face from the verification system). This cannot be undone. Continue?"
+      );
+      if (!confirmed) return;
+    }
+
     setActingId(id);
     try {
       await axios.post(`${API}/admin/deactivation-requests/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRequests((prev) => prev.filter((r) => r.id !== id));
-      showToast("Account deactivated.", "success", CheckCircle);
+      showToast(type === "delete" ? "Account permanently deleted." : "Account deactivated.", "success", CheckCircle);
       fetchDeactivated();
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to approve request.", "error", AlertCircle);
@@ -204,6 +212,11 @@ export default function AdminDeactivationRequests() {
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${roleColor(u?.role)}`}>
                           {u?.role === "landlord" ? "Property Owner" : "Tenant"}
                         </span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                          r.type === "delete" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                        }`}>
+                          {r.type === "delete" ? "Delete" : "Deactivate"}
+                        </span>
                       </div>
                       <p className="text-xs text-gray-400 truncate">{u?.email}</p>
 
@@ -229,11 +242,13 @@ export default function AdminDeactivationRequests() {
                       {isActing ? <Loader size={14} className="animate-spin" /> : <><XCircle size={14} /> Reject</>}
                     </button>
                     <button
-                      onClick={() => handleApprove(r.id)}
+                      onClick={() => handleApprove(r.id, r.type)}
                       disabled={isActing}
-                      className="flex-1 h-10 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+                      className={`flex-1 h-10 text-white rounded-xl text-sm font-semibold transition flex items-center justify-center gap-1.5 disabled:opacity-50 ${
+                        r.type === "delete" ? "bg-red-700 hover:bg-red-800" : "bg-red-500 hover:bg-red-600"
+                      }`}
                     >
-                      {isActing ? <Loader size={14} className="animate-spin" /> : <><CheckCircle size={14} /> Approve</>}
+                      {isActing ? <Loader size={14} className="animate-spin" /> : <><CheckCircle size={14} /> {r.type === "delete" ? "Approve Deletion" : "Approve"}</>}
                     </button>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 // FILE: src/pages/AdminVerification.jsx
 // ✅ FIX #1: Corrected pagination data extraction
 // ✅ FIX #2: Removed hardcoded localhost URL
+// ✅ NEW: Quick-select preset rejection reasons alongside free-text box
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +16,17 @@ import { useAuth } from "../context/AuthContext";
 const API = import.meta.env.VITE_API_URL;
 // ✅ FIX #2: REMOVED HARDCODED LOCALHOST - NOW DYNAMIC
 const STORAGE = `${API.replace('/api', '')}/storage/`;
+
+// Quick-select preset reasons — clicking one fills the textarea below,
+// which stays editable/appendable, so admins can still type a fully
+// custom reason too. These are the plain-language explanations shown
+// directly to the tenant/property owner in their rejection popup.
+const REJECTION_PRESETS = [
+  "Face in the selfie does not match the ID photo.",
+  "Photos are too blurry to verify clearly.",
+  "ID appears invalid, expired, or edited.",
+  "Submission appears suspicious or fraudulent.",
+];
 
 function Toast({ message, type, icon: Icon }) {
   if (!message) return null;
@@ -232,6 +244,25 @@ function VerificationCard({ item, onApprove, onReject, processing }) {
 
       {showRejectInput && (
         <div className="mt-4">
+          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            Quick reasons
+          </p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {REJECTION_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setReason(preset)}
+                className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-full border transition ${
+                  reason === preset
+                    ? "border-red-400 bg-red-50 text-red-600"
+                    : "border-gray-200 text-gray-600 hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+                }`}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}

@@ -4,6 +4,9 @@ import { useAuth } from "./context/AuthContext";
 // Layout
 import MainLayout from "./layouts/MainLayout";
 
+// Global modals (render above every page, regardless of route)
+import VerificationStatusModal from "./components/VerificationStatusModal";
+
 // Pages
 import Welcome from "./pages/Welcome";
 import Browse from "./pages/Browse";
@@ -130,6 +133,11 @@ function App() {
     return <TenantOnly><Profile /></TenantOnly>;
   };
 
+  // The /verify page already renders its own full-page verified/rejected
+  // states — suppress the global popup there so the user never sees the
+  // same information twice at once.
+  const suppressGlobalVerificationModal = location.pathname === "/verify";
+
   return (
     <>
       <Routes location={background || location}>
@@ -218,6 +226,8 @@ function App() {
           <Route path="/register" element={<Register />} />
         </Routes>
       )}
+
+      {!suppressGlobalVerificationModal && <VerificationStatusModal />}
     </>
   );
 }

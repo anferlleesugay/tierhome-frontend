@@ -1,15 +1,38 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { MessageCircle, X, Send, Loader, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, Loader, Sparkles, Home, ArrowRight } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL;
 
 const WELCOME_MESSAGE = {
   role: "bot",
   text: "Hi! I'm the TierHome assistant. Ask me about registering, identity verification, affordability ranking, listings, or reservations.",
+  listings: [],
 };
 
+function ListingSuggestionCard({ listing, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left bg-white border border-gray-200 rounded-xl p-2.5 flex items-center gap-2.5 hover:border-[#3d6b35] hover:bg-green-50/50 transition group"
+    >
+      <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center shrink-0 group-hover:bg-green-100 transition">
+        <Home size={16} className="text-[#3d6b35]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[12.5px] font-semibold text-gray-800 truncate">{listing.title}</p>
+        <p className="text-[11px] text-gray-400">
+          {listing.barangay} · ₱{Number(listing.price).toLocaleString()}/month
+        </p>
+      </div>
+      <ArrowRight size={14} className="text-gray-300 group-hover:text-[#3d6b35] transition shrink-0" />
+    </button>
+  );
+}
+
 export default function ChatbotWidget() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
@@ -26,18 +49,19 @@ export default function ChatbotWidget() {
     const text = input.trim();
     if (!text || sending) return;
 
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    setMessages((prev) => [...prev, { role: "user", text, listings: [] }]);
     setInput("");
     setSending(true);
 
     try {
       const res = await axios.post(`${API}/chatbot/message`, { message: text });
       const reply = res.data?.data?.response || "Sorry, I couldn't process that. Please try again.";
-      setMessages((prev) => [...prev, { role: "bot", text: reply }]);
+      const listings = Array.isArray(res.data?.data?.listings) ? res.data.data.listings : [];
+      setMessages((prev) => [...prev, { role: "bot", text: reply, listings }]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { role: "bot", text: "Sorry, something went wrong. Please try again in a moment." },
+        { role: "bot", text: "Sorry, something went wrong. Please try again in a moment.", listings: [] },
       ]);
     } finally {
       setSending(false);
@@ -49,6 +73,11 @@ export default function ChatbotWidget() {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const goToListing = (id) => {
+    navigate(`/listing/${id}`);
+    setOpen(false);
   };
 
   return (
@@ -80,7 +109,7 @@ export default function ChatbotWidget() {
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-gray-50">
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={i} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
                 <div
                   className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm whitespace-pre-line ${
                     m.role === "user"
@@ -90,6 +119,19 @@ export default function ChatbotWidget() {
                 >
                   {m.text}
                 </div>
+
+                {/* Clickable listing suggestions, when the bot's response included real matches */}
+                {m.role === "bot" && m.listings?.length > 0 && (
+                  <div className="mt-1.5 w-[85%] space-y-1.5">
+                    {m.listings.map((listing) => (
+                      <ListingSuggestionCard
+                        key={listing.id}
+                        listing={listing}
+                        onClick={() => goToListing(listing.id)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             {sending && (

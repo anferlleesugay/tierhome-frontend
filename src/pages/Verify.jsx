@@ -175,10 +175,16 @@ export default function Verify() {
       const returned = normalizeStatus(res.data?.data?.status);
       const reason   = res.data?.data?.rejection_reason || res.data?.message || "";
       setSubmitting(false);
+      // ✅ FIX: previously this branch called navigate() immediately without
+      // ever setting status to "verified" — meaning the confirmation screen
+      // below (the green "You're Verified!" party-popper view) never got a
+      // chance to render on instant auto-approval; the user was redirected
+      // with zero visual confirmation. Now we set status and let the
+      // confirmation screen's own "Continue" button handle navigation,
+      // matching how "pending" and "rejected" already behave.
       if (returned === "verified") {
         await refreshUser();
-        if (role === "landlord") navigate("/landlord/dashboard");
-        else navigate("/browse");
+        setStatus("verified");
       } else {
         setStatus(returned);
         setRejectionReason(reason);
